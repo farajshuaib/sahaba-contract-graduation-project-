@@ -1,202 +1,204 @@
-//SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-//prevents re-entrancy attacks
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract NFTMarket is ReentrancyGuard {
+
+
+contract Marketplace is ERC721URIStorage {
+    //auto-increment field for each token
     using Counters for Counters.Counter;
-    Counters.Counter private _itemIds; //total number of items ever created
-    Counters.Counter private _itemsSold; //total number of items sold
+    Counters.Counter private _tokenIds;
 
-    address payable owner; //owner of the smart contract
+    // this contract's token collection name
+    string public collectionName;
+    // this contract's token symbol
+    string public collectionNameSymbol;
+    //owner of the smart contract
+    address  payable owner; 
     //people have to pay to puy their NFT on this marketplace
-    uint256 listingPrice = 0.025 ether;
+    uint256 private listingPrice = 0.025 ether;
 
-    constructor() {
+    constructor() ERC721("sahabaNFT", "NFT") {
+        collectionName = name();
+        collectionNameSymbol = symbol();
         owner = payable(msg.sender);
     }
 
     struct MarketItem {
-        uint256 itemId;
-        address nftContract;
         uint256 tokenId;
-        address payable seller; //person selling the nft
-        address payable owner; //owner of the nft
+        address payable mintedBy;
+        address payable currentOwner;
+        address payable previousOwner;
         uint256 price;
-        bool sold;
+        uint256 numberOfTransfers;
+        bool forSale;
     }
 
-    //a way to access values of the MarketItem struct above by passing an integer ID
+    // a way to access values of the MarketItem struct above by passing an integer ID
     mapping(uint256 => MarketItem) private idMarketItem;
+    // check if token URI exists
+    mapping(string => bool) public tokenURIExists;
+   
 
-    //log message (when Item is sold)
-    event MarketItemCreated(
-        uint256 indexed itemId,
-        address indexed nftContract,
-        uint256 indexed tokenId,
-        address seller,
-        address owner,
-        uint256 price,
-        bool sold
-    );
+    /// @notice function to create market item
+    function createAndListToken(string memory tokenURI, uint256 price) public payable returns(uint) {
+        // check if thic fucntion caller is not an zero address account
+        require(msg.sender != address(0), "address not found !!");
+        // check if the token URI already exists or not
+        require(!tokenURIExists[tokenURI], "tokenURI is already minted");
+         // check if the token URI already exists or not
+        require(price > 0, "Price must be above zero");
+        require(
+            msg.value == listingPrice,
+            "Price must be above of listing price"
+        );
 
-    /// @notice function to get listingprice
+        //set a new token id for the token to be minted
+        _tokenIds.increment();
+        uint256 newItemId = _tokenIds.current();
+
+        _mint(msg.sender, newItemId); //mint the token
+        _setTokenURI(newItemId, tokenURI); //generate the URI
+        setApprovalForAll(address(this), true); //grant transaction permission to marketplace
+
+
+        MarketItem memory newItem = MarketItem(
+            newItemId,
+            payable(msg.sender),
+            payable(msg.sender),
+            payable(address(0)),
+            price,
+            0,
+            false
+        );
+
+         // add the token id and it's crypto boy to all crypto boys mapping
+        idMarketItem[newItemId] = newItem;
+
+        //return token ID
+        return newItemId;
+    }
+
+    /// @notice function to buy a token
+    function buyToken(uint256 _tokenId) public payable {
+            // check if the function caller is not an zero account address
+        require(msg.sender != address(0), "address not found");
+        // check if the token id of the token being bought exists or not
+        require(_exists(_tokenId), "send a token of the item");
+        // get the token's owner
+        address tokenOwner = ownerOf(_tokenId);
+        // token's owner should not be an zero address account
+        require(tokenOwner != address(0), "token owner address is missed !!");
+        // the one who wants to buy the token should not be the token's owner
+        require(tokenOwner != msg.sender, "the one who wants to buy the token should not be the token's owner");
+        // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
+        MarketItem memory marketItem = idMarketItem[_tokenId];
+        // price sent in to buy should be equal to or more than the token's price
+        require(msg.value >= marketItem.price, "price is less than required");
+        // token should be for sale
+        require(marketItem.forSale, "sorry this NFT is not for salse");
+        // send token's worth of ethers to the owner
+        marketItem.currentOwner.transfer(msg.value);
+        // transfer the token from owner to the caller of the function (buyer)
+        _transfer(tokenOwner, msg.sender, _tokenId); // _transfer(from, to, token_id)
+        // update the token's previous owner
+        marketItem.previousOwner = marketItem.currentOwner;
+        // update the token's current owner
+        marketItem.currentOwner = payable(msg.sender);
+        // update the how many times this token was transfered
+        marketItem.numberOfTransfers += 1;
+        // set and update that token in the mapping
+        idMarketItem[_tokenId] = marketItem;
+        //pay owner of contract the listing price
+        payable(owner).transfer(listingPrice);         
+    }
+
+
+    function changeTokenPrice(uint256 _tokenId, uint256 _newPrice) public {
+        // require caller of the function is not an empty address
+        require(msg.sender != address(0));
+        // require that token should exist
+        require(_exists(_tokenId));
+        // get the token's owner
+        address tokenOwner = ownerOf(_tokenId);
+        // check that token's owner should be equal to the caller of the function
+        require(tokenOwner == msg.sender);
+        // get that token from all crypto boys mapping and create a memory of it defined as (struct => CryptoBoy)
+        MarketItem memory marketItem = idMarketItem[_tokenId];
+        // update token's price with new price
+        marketItem.price = _newPrice;
+        // set and update that token in the mapping
+        idMarketItem[_tokenId] = marketItem;
+    }
+
+
+     // switch between set for sale and set not for sale
+    function toggleForSale(uint256 _tokenId) public {
+      // require caller of the function is not an empty address
+      require(msg.sender != address(0));
+      // require that token should exist
+      require(_exists(_tokenId));
+      // get the token's owner
+      address tokenOwner = ownerOf(_tokenId);
+      // check that token's owner should be equal to the caller of the function
+      require(tokenOwner == msg.sender, "you don't own this NFT you can't modify it");
+      // get that token from idMarketItem mapping and create a memory of it defined as (struct => MarketItem)
+      MarketItem memory marketItem = idMarketItem[_tokenId];
+      // if token's forSale is false make it true and vice versa
+      if(marketItem.forSale) {
+        marketItem.forSale = false;
+      } else {
+        marketItem.forSale = true;
+      }
+      // set and update that token in the mapping
+      idMarketItem[_tokenId] = marketItem;
+    }
+
+
+  
+       /// @notice function to get listingprice
     function getListingPrice() public view returns (uint256) {
         return listingPrice;
     }
 
     function setListingPrice(uint256 _price) public returns (uint256) {
-        if (msg.sender == address(this)) {
-            listingPrice = _price;
-        }
+        require(msg.sender == address(this), "you don't have access to modify the token price");
+        listingPrice = _price;
         return listingPrice;
     }
 
-    /// @notice function to create market item
-    function createMarketItem(
-        address nftContract,
-        uint256 tokenId,
-        uint256 price
-    ) public payable nonReentrant {
-        require(price > 0, "Price must be above zero");
-        require(
-            msg.value == listingPrice,
-            "Price must be equal to listing price"
-        );
 
-        _itemIds.increment(); //add 1 to the total number of items ever created
-        uint256 itemId = _itemIds.current();
 
-        idMarketItem[itemId] = MarketItem(
-            itemId,
-            nftContract,
-            tokenId,
-            payable(msg.sender), //address of the seller putting the nft up for sale
-            payable(address(0)), //no owner yet (set owner to empty address)
-            price,
-            false
-        );
-
-        //transfer ownership of the nft to the contract itself
-        IERC721(nftContract).transferFrom(msg.sender, address(this), tokenId);
-
-        //log this transaction
-        emit MarketItemCreated(
-            itemId,
-            nftContract,
-            tokenId,
-            msg.sender,
-            address(0),
-            price,
-            false
-        );
+     // get owner of the token
+    function getTokenOwner(uint256 _tokenId) public view returns(address) {
+      address _tokenOwner = ownerOf(_tokenId);
+      return _tokenOwner;
     }
 
-    /// @notice function to create a sale
-    function createMarketSale(address nftContract, uint256 itemId)
-        public
-        payable
-        nonReentrant
-    {
-        uint256 price = idMarketItem[itemId].price;
-        uint256 tokenId = idMarketItem[itemId].tokenId;
 
-        require(
-            msg.value == price,
-            "Please submit the asking price in order to complete purchase"
-        );
 
-        //pay the seller the amount
-        idMarketItem[itemId].seller.transfer(msg.value);
-
-        //transfer ownership of the nft from the contract itself to the buyer
-        IERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
-
-        idMarketItem[itemId].owner = payable(msg.sender); //mark buyer as new owner
-        idMarketItem[itemId].sold = true; //mark that it has been sold
-        _itemsSold.increment(); //increment the total number of Items sold by 1
-        payable(owner).transfer(listingPrice); //pay owner of contract the listing price
+     // get metadata of the token
+    function getTokenURI(uint _tokenId) public view returns(string memory) {
+      string memory tokenMetaData = tokenURI(_tokenId);
+      return tokenMetaData;
     }
 
-    /// @notice total number of items unsold on our platform
-    function fetchMarketItems() public view returns (MarketItem[] memory) {
-        uint256 itemCount = _itemIds.current(); //total number of items ever created
-        //total number of items that are unsold = total items ever created - total items ever sold
-        uint256 unsoldItemCount = _itemIds.current() - _itemsSold.current();
-        uint256 currentIndex = 0;
 
-        MarketItem[] memory items = new MarketItem[](unsoldItemCount);
 
-        //loop through all items ever created
-        for (uint256 i = 0; i < itemCount; i++) {
-            //get only unsold item
-            //check if the item has not been sold
-            //by checking if the owner field is empty
-            if (idMarketItem[i + 1].owner == address(0)) {
-                //yes, this item has never been sold
-                uint256 currentId = idMarketItem[i + 1].itemId;
-                MarketItem storage currentItem = idMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items; //return array of all unsold items
+    // get total number of tokens owned by an address
+    function getTotalNumberOfTokensOwnedByAnAddress(address _owner) public view returns(uint256) {
+      uint256 totalNumberOfTokensOwned = balanceOf(_owner);
+      return totalNumberOfTokensOwned;
     }
 
-    /// @notice fetch list of NFTS owned/bought by this user
-    function fetchMyNFTs() public view returns (MarketItem[] memory) {
-        //get total number of items ever created
-        uint256 totalItemCount = _itemIds.current();
-
-        uint256 itemCount = 0;
-        uint256 currentIndex = 0;
-
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            //get only the items that this user has bought/is the owner
-            if (idMarketItem[i + 1].owner == msg.sender) {
-                itemCount += 1; //total length
-            }
-        }
-
-        MarketItem[] memory items = new MarketItem[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idMarketItem[i + 1].owner == msg.sender) {
-                uint256 currentId = idMarketItem[i + 1].itemId;
-                MarketItem storage currentItem = idMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items;
+    // check if the token already exists
+    function getTokenExists(uint256 _tokenId) public view returns(bool) {
+      bool tokenExists = _exists(_tokenId);
+      return tokenExists;
     }
+   
 
-    /// @notice fetch list of NFTS owned/bought by this user
-    function fetchItemsCreated() public view returns (MarketItem[] memory) {
-        //get total number of items ever created
-        uint256 totalItemCount = _itemIds.current();
-
-        uint256 itemCount = 0;
-        uint256 currentIndex = 0;
-
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            //get only the items that this user has bought/is the owner
-            if (idMarketItem[i + 1].seller == msg.sender) {
-                itemCount += 1; //total length
-            }
-        }
-
-        MarketItem[] memory items = new MarketItem[](itemCount);
-        for (uint256 i = 0; i < totalItemCount; i++) {
-            if (idMarketItem[i + 1].seller == msg.sender) {
-                uint256 currentId = idMarketItem[i + 1].itemId;
-                MarketItem storage currentItem = idMarketItem[currentId];
-                items[currentIndex] = currentItem;
-                currentIndex += 1;
-            }
-        }
-        return items;
-    }
+   
 }
