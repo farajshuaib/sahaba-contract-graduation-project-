@@ -1,4 +1,5 @@
-pragma solidity ^0.8.4;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.6.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -16,7 +17,7 @@ contract Marketplace is ERC721URIStorage {
     // this contract's token symbol
     string public collectionNameSymbol;
     //owner of the smart contract
-    address  payable owner; 
+    address payable owner;
     //people have to pay to puy their NFT on this marketplace
     uint256 private listingPrice = 0.025 ether;
 
@@ -59,7 +60,7 @@ contract Marketplace is ERC721URIStorage {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
 
-        _mint(msg.sender, newItemId); //mint the token
+        _mint(msg.sender, newItemId); // mint the token
         _setTokenURI(newItemId, tokenURI); //generate the URI
         setApprovalForAll(address(this), true); //grant transaction permission to marketplace
 

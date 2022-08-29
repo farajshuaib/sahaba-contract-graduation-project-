@@ -7,7 +7,12 @@ dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: "0.8.9",
-
+  etherscan: {
+    apiKey: {
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+      polygon: process.env.POLYGONSCAN_API_KEY
+    }
+  },
   networks: {
     hardhat:{
       chainId: 1337,
