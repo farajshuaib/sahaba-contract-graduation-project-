@@ -9,6 +9,8 @@ interface NFT {
 }
 
 interface Marketplace {
+    address: string;
+    deployed: () => void;
     collectionName: string;
     collectionNameSymbol: string;
     createAndListToken: (tokenURI:string, price : number) => number; // tokenID
