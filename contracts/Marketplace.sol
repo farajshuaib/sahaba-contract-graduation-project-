@@ -5,12 +5,11 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-
-
 contract Marketplace is ERC721URIStorage {
     //auto-increment field for each token
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
+    Counters.Counter private _collectionIds;
 
     // this contract's token collection name
     string public collectionName;
@@ -27,29 +26,63 @@ contract Marketplace is ERC721URIStorage {
         owner = payable(msg.sender);
     }
 
+    struct MarketCollection {
+        uint256 collectionId;
+        string name;
+        address payable created_by;
+    }
+
     struct MarketItem {
         uint256 tokenId;
         address payable mintedBy;
         address payable currentOwner;
         address payable previousOwner;
         uint256 price;
+        uint256 collection_id;
         uint256 numberOfTransfers;
-        bool forSale;
     }
 
     // a way to access values of the MarketItem struct above by passing an integer ID
     mapping(uint256 => MarketItem) private idMarketItem;
+    mapping(uint256 => MarketCollection) private idMarketCollection;
     // check if token URI exists
     mapping(string => bool) public tokenURIExists;
-   
+
 
     /// @notice function to create market item
-    function createAndListToken(string memory tokenURI, uint256 price) public payable returns(uint) {
+    function createCollection(string memory name) public returns (uint) {
         // check if thic fucntion caller is not an zero address account
         require(msg.sender != address(0), "address not found !!");
+
+        _collectionIds.increment();
+        uint256 newCollectionId = _collectionIds.current();
+
+        MarketCollection memory newCollection = MarketCollection(
+            newCollectionId,
+            name,
+            payable(msg.sender)
+        );
+
+        idMarketCollection[newCollectionId] = newCollection;
+
+        //return token ID
+        return newCollectionId;
+    }
+
+
+    /// @notice function to create market item
+    function createAndListToken(string memory tokenURI, uint256 price, uint collection_id)
+        public
+        payable
+        returns (uint)
+    {
+        // check if thic fucntion caller is not an zero address account
+        require(msg.sender != address(0), "address not found !!");
+        require(_exists(collection_id), "collection id  not found !!");
+        require(_exists(price), "price not found !!");
         // check if the token URI already exists or not
         require(!tokenURIExists[tokenURI], "tokenURI is already minted");
-         // check if the token URI already exists or not
+        // check if the token URI already exists or not
         require(price > 0, "Price must be above zero");
         require(
             msg.value == listingPrice,
@@ -64,18 +97,16 @@ contract Marketplace is ERC721URIStorage {
         _setTokenURI(newItemId, tokenURI); //generate the URI
         setApprovalForAll(address(this), true); //grant transaction permission to marketplace
 
-
         MarketItem memory newItem = MarketItem(
             newItemId,
             payable(msg.sender),
             payable(msg.sender),
             payable(address(0)),
             price,
-            0,
-            false
+            collection_id,
+            0 // number of transfer
         );
 
-         // add the token id and it's crypto boy to all crypto boys mapping
         idMarketItem[newItemId] = newItem;
 
         //return token ID
@@ -84,7 +115,7 @@ contract Marketplace is ERC721URIStorage {
 
     /// @notice function to buy a token
     function buyToken(uint256 _tokenId) public payable {
-            // check if the function caller is not an zero account address
+        // check if the function caller is not an zero account address
         require(msg.sender != address(0), "address not found");
         // check if the token id of the token being bought exists or not
         require(_exists(_tokenId), "send a token of the item");
@@ -93,13 +124,14 @@ contract Marketplace is ERC721URIStorage {
         // token's owner should not be an zero address account
         require(tokenOwner != address(0), "token owner address is missed !!");
         // the one who wants to buy the token should not be the token's owner
-        require(tokenOwner != msg.sender, "the one who wants to buy the token should not be the token's owner");
+        require(
+            tokenOwner != msg.sender,
+            "the one who wants to buy the token should not be the token's owner"
+        );
         // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[_tokenId];
         // price sent in to buy should be equal to or more than the token's price
         require(msg.value >= marketItem.price, "price is less than required");
-        // token should be for sale
-        require(marketItem.forSale, "sorry this NFT is not for salse");
         // send token's worth of ethers to the owner
         marketItem.currentOwner.transfer(msg.value);
         // transfer the token from owner to the caller of the function (buyer)
@@ -113,20 +145,19 @@ contract Marketplace is ERC721URIStorage {
         // set and update that token in the mapping
         idMarketItem[_tokenId] = marketItem;
         //pay owner of contract the listing price
-        payable(owner).transfer(listingPrice);         
+        payable(owner).transfer(listingPrice);
     }
-
 
     function changeTokenPrice(uint256 _tokenId, uint256 _newPrice) public {
         // require caller of the function is not an empty address
-        require(msg.sender != address(0));
+        require(msg.sender != address(0), "address is missing");
         // require that token should exist
-        require(_exists(_tokenId));
+        require(_exists(_tokenId), "please send the token id");
         // get the token's owner
         address tokenOwner = ownerOf(_tokenId);
         // check that token's owner should be equal to the caller of the function
-        require(tokenOwner == msg.sender);
-        // get that token from all crypto boys mapping and create a memory of it defined as (struct => CryptoBoy)
+        require(tokenOwner == msg.sender, "you're not allowed to maintain this token");
+
         MarketItem memory marketItem = idMarketItem[_tokenId];
         // update token's price with new price
         marketItem.price = _newPrice;
@@ -135,71 +166,45 @@ contract Marketplace is ERC721URIStorage {
     }
 
 
-     // switch between set for sale and set not for sale
-    function toggleForSale(uint256 _tokenId) public {
-      // require caller of the function is not an empty address
-      require(msg.sender != address(0));
-      // require that token should exist
-      require(_exists(_tokenId));
-      // get the token's owner
-      address tokenOwner = ownerOf(_tokenId);
-      // check that token's owner should be equal to the caller of the function
-      require(tokenOwner == msg.sender, "you don't own this NFT you can't modify it");
-      // get that token from idMarketItem mapping and create a memory of it defined as (struct => MarketItem)
-      MarketItem memory marketItem = idMarketItem[_tokenId];
-      // if token's forSale is false make it true and vice versa
-      if(marketItem.forSale) {
-        marketItem.forSale = false;
-      } else {
-        marketItem.forSale = true;
-      }
-      // set and update that token in the mapping
-      idMarketItem[_tokenId] = marketItem;
-    }
-
-
-  
-       /// @notice function to get listingprice
+    /// @notice function to get listingprice
     function getListingPrice() public view returns (uint256) {
         return listingPrice;
     }
 
     function setListingPrice(uint256 _price) public returns (uint256) {
-        require(msg.sender == address(this), "you don't have access to modify the token price");
+        require(
+            msg.sender == address(this),
+            "you don't have access to modify the token price"
+        );
         listingPrice = _price;
         return listingPrice;
     }
 
-
-
-     // get owner of the token
-    function getTokenOwner(uint256 _tokenId) public view returns(address) {
-      address _tokenOwner = ownerOf(_tokenId);
-      return _tokenOwner;
+    // get owner of the token
+    function getTokenOwner(uint256 _tokenId) public view returns (address) {
+        address _tokenOwner = ownerOf(_tokenId);
+        return _tokenOwner;
     }
 
-
-
-     // get metadata of the token
-    function getTokenURI(uint _tokenId) public view returns(string memory) {
-      string memory tokenMetaData = tokenURI(_tokenId);
-      return tokenMetaData;
+    // get metadata of the token
+    function getTokenURI(uint _tokenId) public view returns (string memory) {
+        string memory tokenMetaData = tokenURI(_tokenId);
+        return tokenMetaData;
     }
-
-
 
     // get total number of tokens owned by an address
-    function getTotalNumberOfTokensOwnedByAnAddress(address _owner) public view returns(uint256) {
-      uint256 totalNumberOfTokensOwned = balanceOf(_owner);
-      return totalNumberOfTokensOwned;
+    function getTotalNumberOfTokensOwnedByAnAddress(address _owner)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 totalNumberOfTokensOwned = balanceOf(_owner);
+        return totalNumberOfTokensOwned;
     }
 
     // check if the token already exists
-    function getTokenExists(uint256 _tokenId) public view returns(bool) {
-      bool tokenExists = _exists(_tokenId);
-      return tokenExists;
+    function getTokenExists(uint256 _tokenId) public view returns (bool) {
+        bool tokenExists = _exists(_tokenId);
+        return tokenExists;
     }
-   
-
-   
 }

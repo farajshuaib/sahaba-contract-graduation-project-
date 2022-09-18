@@ -5,12 +5,14 @@ import "@nomicfoundation/hardhat-toolbox";
 
 dotenv.config();
 
+const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY || ""
+
 const config: HardhatUserConfig = {
   solidity: "0.8.9",
   etherscan: {
     apiKey: {
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-      polygon: process.env.POLYGONSCAN_API_KEY
+      polygonMumbai: POLYGONSCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY
     }
   },
   networks: {
