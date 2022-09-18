@@ -1,5 +1,5 @@
-// contract url: https://mumbai.polygonscan.com/address/0x5063295d735F1F8A01a114c59e00837d63e6cdc9#code
-// contract address : 0x5063295d735F1F8A01a114c59e00837d63e6cdc9
+// contract url: https://mumbai.polygonscan.com/address/0x47c0e6E237f15301d26726eF82bB86cAAD40B22a#code
+// contract address : 0x47c0e6E237f15301d26726eF82bB86cAAD40B22a
 
 interface NFT {
     tokenId: number;

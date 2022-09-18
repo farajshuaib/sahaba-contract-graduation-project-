@@ -36,7 +36,8 @@ export interface MarketplaceInterface extends utils.Interface {
     "changeTokenPrice(uint256,uint256)": FunctionFragment;
     "collectionName()": FunctionFragment;
     "collectionNameSymbol()": FunctionFragment;
-    "createAndListToken(string,uint256)": FunctionFragment;
+    "createAndListToken(string,uint256,uint256)": FunctionFragment;
+    "createCollection(string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getListingPrice()": FunctionFragment;
     "getTokenExists(uint256)": FunctionFragment;
@@ -52,7 +53,6 @@ export interface MarketplaceInterface extends utils.Interface {
     "setListingPrice(uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
-    "toggleForSale(uint256)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "tokenURIExists(string)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
@@ -67,6 +67,7 @@ export interface MarketplaceInterface extends utils.Interface {
       | "collectionName"
       | "collectionNameSymbol"
       | "createAndListToken"
+      | "createCollection"
       | "getApproved"
       | "getListingPrice"
       | "getTokenExists"
@@ -82,7 +83,6 @@ export interface MarketplaceInterface extends utils.Interface {
       | "setListingPrice"
       | "supportsInterface"
       | "symbol"
-      | "toggleForSale"
       | "tokenURI"
       | "tokenURIExists"
       | "transferFrom"
@@ -114,7 +114,15 @@ export interface MarketplaceInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createAndListToken",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "createCollection",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -180,10 +188,6 @@ export interface MarketplaceInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "toggleForSale",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "tokenURI",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
@@ -217,6 +221,10 @@ export interface MarketplaceInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "createAndListToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "createCollection",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -270,10 +278,6 @@ export interface MarketplaceInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "toggleForSale",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenURIExists",
@@ -387,7 +391,13 @@ export interface Marketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      collection_id: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    createCollection(
+      name: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     getApproved(
@@ -463,11 +473,6 @@ export interface Marketplace extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
-    toggleForSale(
-      _tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -515,7 +520,13 @@ export interface Marketplace extends BaseContract {
   createAndListToken(
     tokenURI: PromiseOrValue<string>,
     price: PromiseOrValue<BigNumberish>,
+    collection_id: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  createCollection(
+    name: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   getApproved(
@@ -591,11 +602,6 @@ export interface Marketplace extends BaseContract {
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
-  toggleForSale(
-    _tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   tokenURI(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
@@ -643,6 +649,12 @@ export interface Marketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      collection_id: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    createCollection(
+      name: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -718,11 +730,6 @@ export interface Marketplace extends BaseContract {
     ): Promise<boolean>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
-
-    toggleForSale(
-      _tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -807,7 +814,13 @@ export interface Marketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      collection_id: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    createCollection(
+      name: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     getApproved(
@@ -883,11 +896,6 @@ export interface Marketplace extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
-    toggleForSale(
-      _tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -938,7 +946,13 @@ export interface Marketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      collection_id: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    createCollection(
+      name: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getApproved(
@@ -1013,11 +1027,6 @@ export interface Marketplace extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    toggleForSale(
-      _tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
 
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,
