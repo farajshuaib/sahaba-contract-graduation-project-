@@ -16,7 +16,7 @@ interface Marketplace {
     deployed: () => void;
     collectionName: string;
     collectionNameSymbol: string;
-    createAndListToken: (tokenURI:string, price : number) => number; // tokenID
+    createAndListToken: (tokenURI:string, price : number, collection_id: number) => number; // tokenID
     buyToken: (tokenId: number) => void;
     changeTokenPrice: (tokenId: number, newPrice:number) => void; // you must be the owner of the token
     getListingPrice: () => number;
@@ -24,5 +24,6 @@ interface Marketplace {
     getTokenOwner: (tokenId: number) => string;
     getTokenURI: (tokenId: number) => string;
     getTotalNumberOfTokensOwnedByAnAddress: (owner: string) => number;
-    getTokenExists: (tokenId: number) => boolean
+    getTokenExists: (tokenId: number) => boolean;
+    createCollection: (name: string) => number
 }
