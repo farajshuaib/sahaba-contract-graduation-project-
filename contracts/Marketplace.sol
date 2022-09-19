@@ -45,6 +45,7 @@ contract Marketplace is ERC721URIStorage {
     // a way to access values of the MarketItem struct above by passing an integer ID
     mapping(uint256 => MarketItem) private idMarketItem;
     mapping(uint256 => MarketCollection) private idMarketCollection;
+    
     // check if token URI exists
     mapping(string => bool) public tokenURIExists;
 

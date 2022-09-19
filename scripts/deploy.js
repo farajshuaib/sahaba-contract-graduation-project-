@@ -19,7 +19,7 @@ async function main() {
 
   await nftMarket.deployed();
 
-  console.log("NFTMarket deployed to:", `https://mumbai.polygonscan.com/address/${nftMarket.address}`);
+  console.log("NFTMarket deployed to:", `${nftMarket.address}`);
 
 
 }

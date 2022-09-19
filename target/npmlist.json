@@ -1,0 +1,1 @@
+{"version":"1.0.0","name":"sahaba-contract","dependencies":{"@nomicfoundation/hardhat-chai-matchers":{"version":"1.0.3"},"chai":{"version":"4.3.6"},"dotenv":{"version":"16.0.1"},"ethereumjs-abi":{"version":"0.6.8"}}}
