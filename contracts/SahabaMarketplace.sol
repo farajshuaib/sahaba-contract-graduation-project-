@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 contract SahabaMarketplace is ERC721URIStorage {
     //auto-increment field for each token
-    uint256 private _tokenId;
-    uint256 private _collectionId;
+    uint256 private _tokenId = 0 ;
+    uint256 private _collectionId = 0;
 
     // this contract's token collection name
     string public collectionName;
@@ -68,23 +68,17 @@ contract SahabaMarketplace is ERC721URIStorage {
 
 
     /// @notice function to create market item
-    function createAndListToken(string memory tokenURI, uint256 price, uint collection_id)
+    function createAndListToken(string memory tokenURI, uint256 price, uint256 collection_id)
         public
         payable
         returns (uint)
     {
         // check if thic fucntion caller is not an zero address account
         require(msg.sender != address(0), "address not found !!");
-        require(_exists(collection_id), "collection id  not found !!");
-        require(_exists(price), "price not found !!");
         // check if the token URI already exists or not
         require(!tokenURIExists[tokenURI], "tokenURI is already minted");
         // check if the token URI already exists or not
         require(price > 0, "Price must be above zero");
-        require(
-            msg.value == listingPrice,
-            "Price must be above of listing price"
-        );
 
         //set a new token id for the token to be minted
         _tokenId++;
@@ -113,8 +107,6 @@ contract SahabaMarketplace is ERC721URIStorage {
     function buyToken(uint256 tokenId) public payable {
         // check if the function caller is not an zero account address
         require(msg.sender != address(0), "address not found");
-        // check if the token id of the token being bought exists or not
-        require(_exists(tokenId), "send a token of the item");
         // get the token's owner
         address tokenOwner = ownerOf(tokenId);
         // token's owner should not be an zero address account
@@ -147,8 +139,6 @@ contract SahabaMarketplace is ERC721URIStorage {
     function changeTokenPrice(uint256 tokenId, uint256 _newPrice) public {
         // require caller of the function is not an empty address
         require(msg.sender != address(0), "address is missing");
-        // require that token should exist
-        require(_exists(tokenId), "please send the token id");
         // get the token's owner
         address tokenOwner = ownerOf(tokenId);
         // check that token's owner should be equal to the caller of the function
