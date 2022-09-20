@@ -41,9 +41,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
-      name: "Marketplace",
+      name: "SahabaMarketplace",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Marketplace__factory>;
+    ): Promise<Contracts.SahabaMarketplace__factory>;
 
     getContractAt(
       name: "ERC721",
@@ -81,10 +81,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC165>;
     getContractAt(
-      name: "Marketplace",
+      name: "SahabaMarketplace",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.Marketplace>;
+    ): Promise<Contracts.SahabaMarketplace>;
 
     // default types
     getContractFactory(

@@ -14,7 +14,7 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Marketplace = await hre.ethers.getContractFactory("Marketplace");
+  const Marketplace = await hre.ethers.getContractFactory("SahabaMarketplace");
   const nftMarket = await Marketplace.deploy();
 
   await nftMarket.deployed();

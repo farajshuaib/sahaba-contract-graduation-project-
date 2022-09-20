@@ -28,7 +28,7 @@ import type {
   PromiseOrValue,
 } from "../common";
 
-export interface MarketplaceInterface extends utils.Interface {
+export interface SahabaMarketplaceInterface extends utils.Interface {
   functions: {
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
@@ -335,12 +335,12 @@ export type TransferEvent = TypedEvent<
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
-export interface Marketplace extends BaseContract {
+export interface SahabaMarketplace extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: MarketplaceInterface;
+  interface: SahabaMarketplaceInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -374,12 +374,12 @@ export interface Marketplace extends BaseContract {
     ): Promise<[BigNumber]>;
 
     buyToken(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     changeTokenPrice(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -408,17 +408,17 @@ export interface Marketplace extends BaseContract {
     getListingPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getTokenExists(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     getTokenOwner(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
     getTokenURI(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -503,12 +503,12 @@ export interface Marketplace extends BaseContract {
   ): Promise<BigNumber>;
 
   buyToken(
-    _tokenId: PromiseOrValue<BigNumberish>,
+    tokenId: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   changeTokenPrice(
-    _tokenId: PromiseOrValue<BigNumberish>,
+    tokenId: PromiseOrValue<BigNumberish>,
     _newPrice: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -537,17 +537,17 @@ export interface Marketplace extends BaseContract {
   getListingPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
   getTokenExists(
-    _tokenId: PromiseOrValue<BigNumberish>,
+    tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   getTokenOwner(
-    _tokenId: PromiseOrValue<BigNumberish>,
+    tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
 
   getTokenURI(
-    _tokenId: PromiseOrValue<BigNumberish>,
+    tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -632,12 +632,12 @@ export interface Marketplace extends BaseContract {
     ): Promise<BigNumber>;
 
     buyToken(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     changeTokenPrice(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -666,17 +666,17 @@ export interface Marketplace extends BaseContract {
     getListingPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenExists(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     getTokenOwner(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getTokenURI(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -797,12 +797,12 @@ export interface Marketplace extends BaseContract {
     ): Promise<BigNumber>;
 
     buyToken(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     changeTokenPrice(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -831,17 +831,17 @@ export interface Marketplace extends BaseContract {
     getListingPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenExists(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTokenOwner(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getTokenURI(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -927,12 +927,12 @@ export interface Marketplace extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     buyToken(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     changeTokenPrice(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
@@ -963,17 +963,17 @@ export interface Marketplace extends BaseContract {
     getListingPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getTokenExists(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTokenOwner(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getTokenURI(
-      _tokenId: PromiseOrValue<BigNumberish>,
+      tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
