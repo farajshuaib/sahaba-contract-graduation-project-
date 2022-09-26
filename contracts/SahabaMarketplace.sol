@@ -16,7 +16,7 @@ contract SahabaMarketplace is ERC721URIStorage {
     //owner of the smart contract
     address payable owner;
     //people have to pay to puy their NFT on this marketplace
-    uint256 private listingPrice = 0.025 ether;
+    uint256 private service_fees = 0.025 ether;
 
     constructor() ERC721("sahabaNFT", "NFT") {
         collectionName = name();
@@ -132,8 +132,8 @@ contract SahabaMarketplace is ERC721URIStorage {
         marketItem.numberOfTransfers += 1;
         // set and update that token in the mapping
         idMarketItem[tokenId] = marketItem;
-        //pay owner of contract the listing price
-        payable(owner).transfer(listingPrice);
+        //pay owner of contract the service fees
+        payable(owner).transfer(service_fees);
     }
 
     function changeTokenPrice(uint256 tokenId, uint256 _newPrice) public {
@@ -152,18 +152,17 @@ contract SahabaMarketplace is ERC721URIStorage {
     }
 
 
-    /// @notice function to get listingprice
-    function getListingPrice() public view returns (uint256) {
-        return listingPrice;
+    function getServiceFeesPrice() public view returns (uint256) {
+        return service_fees;
     }
 
-    function setListingPrice(uint256 _price) public returns (uint256) {
+    function setServiceFeesPrice(uint256 _price) public returns (uint256) {
         require(
-            msg.sender == address(this),
+            msg.sender == owner,
             "you don't have access to modify the token price"
         );
-        listingPrice = _price;
-        return listingPrice;
+        service_fees = _price;
+        return service_fees;
     }
 
     // get owner of the token

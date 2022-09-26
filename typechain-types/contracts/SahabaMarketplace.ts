@@ -39,7 +39,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "createAndListToken(string,uint256,uint256)": FunctionFragment;
     "createCollection(string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
-    "getListingPrice()": FunctionFragment;
+    "getServiceFeesPrice()": FunctionFragment;
     "getTokenExists(uint256)": FunctionFragment;
     "getTokenOwner(uint256)": FunctionFragment;
     "getTokenURI(uint256)": FunctionFragment;
@@ -50,7 +50,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
-    "setListingPrice(uint256)": FunctionFragment;
+    "setServiceFeesPrice(uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
@@ -69,7 +69,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
       | "createAndListToken"
       | "createCollection"
       | "getApproved"
-      | "getListingPrice"
+      | "getServiceFeesPrice"
       | "getTokenExists"
       | "getTokenOwner"
       | "getTokenURI"
@@ -80,7 +80,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
-      | "setListingPrice"
+      | "setServiceFeesPrice"
       | "supportsInterface"
       | "symbol"
       | "tokenURI"
@@ -129,7 +129,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getListingPrice",
+    functionFragment: "getServiceFeesPrice",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -179,7 +179,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<boolean>]
   ): string;
   encodeFunctionData(
-    functionFragment: "setListingPrice",
+    functionFragment: "setServiceFeesPrice",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -232,7 +232,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getListingPrice",
+    functionFragment: "getServiceFeesPrice",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -270,7 +270,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setListingPrice",
+    functionFragment: "setServiceFeesPrice",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -405,7 +405,7 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getListingPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
+    getServiceFeesPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -461,7 +461,7 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    setListingPrice(
+    setServiceFeesPrice(
       _price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -534,7 +534,7 @@ export interface SahabaMarketplace extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getListingPrice(overrides?: CallOverrides): Promise<BigNumber>;
+  getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
   getTokenExists(
     tokenId: PromiseOrValue<BigNumberish>,
@@ -590,7 +590,7 @@ export interface SahabaMarketplace extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  setListingPrice(
+  setServiceFeesPrice(
     _price: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -663,7 +663,7 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getListingPrice(overrides?: CallOverrides): Promise<BigNumber>;
+    getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -719,7 +719,7 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setListingPrice(
+    setServiceFeesPrice(
       _price: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -828,7 +828,7 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getListingPrice(overrides?: CallOverrides): Promise<BigNumber>;
+    getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -884,7 +884,7 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    setListingPrice(
+    setServiceFeesPrice(
       _price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -960,7 +960,9 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getListingPrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getServiceFeesPrice(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -1016,7 +1018,7 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    setListingPrice(
+    setServiceFeesPrice(
       _price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
