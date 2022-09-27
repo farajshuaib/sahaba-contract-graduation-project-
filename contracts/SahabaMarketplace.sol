@@ -48,11 +48,11 @@ contract SahabaMarketplace is ERC721URIStorage {
 
 
     /// @notice function to create market item
-    function createCollection(string memory name) public returns (uint) {
+    function createCollection(string memory name) public returns (uint256) {
         // check if thic fucntion caller is not an zero address account
         require(msg.sender != address(0), "address not found !!");
 
-        _collectionId++;
+        _collectionId = _collectionId + 1;
 
         MarketCollection memory newCollection = MarketCollection(
             _collectionId,
@@ -71,7 +71,7 @@ contract SahabaMarketplace is ERC721URIStorage {
     function createAndListToken(string memory tokenURI, uint256 price, uint256 collection_id)
         public
         payable
-        returns (uint)
+        returns (uint256)
     {
         // check if thic fucntion caller is not an zero address account
         require(msg.sender != address(0), "address not found !!");
@@ -81,7 +81,7 @@ contract SahabaMarketplace is ERC721URIStorage {
         require(price > 0, "Price must be above zero");
 
         //set a new token id for the token to be minted
-        _tokenId++;
+        _tokenId = _tokenId + 1;
 
         _mint(msg.sender, _tokenId); // mint the token
         _setTokenURI(_tokenId, tokenURI); //generate the URI
