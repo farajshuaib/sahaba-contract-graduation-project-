@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 contract SahabaMarketplace is ERC721URIStorage {
     //auto-increment field for each token
     uint256 private _tokenId = 0 ;
-    uint256 private _collectionId = 0;
 
     // this contract's token collection name
     string public collectionName;
@@ -24,11 +23,6 @@ contract SahabaMarketplace is ERC721URIStorage {
         owner = payable(msg.sender);
     }
 
-    struct MarketCollection {
-        uint256 collectionId;
-        string name;
-        address payable created_by;
-    }
 
     struct MarketItem {
         uint256 tokenId;
@@ -36,39 +30,17 @@ contract SahabaMarketplace is ERC721URIStorage {
         address payable currentOwner;
         address payable previousOwner;
         uint256 price;
-        uint256 collection_id;
         uint256 numberOfTransfers;
     }
 
     // a way to access values of the MarketItem struct above by passing an integer ID
     mapping(uint256 => MarketItem) private idMarketItem;
-    mapping(uint256 => MarketCollection) private idMarketCollection;
     // check if token URI exists
     mapping(string => bool) public tokenURIExists;
 
 
     /// @notice function to create market item
-    function createCollection(string memory name) public returns (uint256) {
-        // check if thic fucntion caller is not an zero address account
-        require(msg.sender != address(0), "address not found !!");
-
-        _collectionId = _collectionId + 1;
-
-        MarketCollection memory newCollection = MarketCollection(
-            _collectionId,
-            name,
-            payable(msg.sender)
-        );
-
-        idMarketCollection[_collectionId] = newCollection;
-
-        //return token ID
-        return _collectionId;
-    }
-
-
-    /// @notice function to create market item
-    function createAndListToken(string memory tokenURI, uint256 price, uint256 collection_id)
+    function createAndListToken(string memory tokenURI, uint256 price)
         public
         payable
         returns (uint256)
@@ -93,7 +65,6 @@ contract SahabaMarketplace is ERC721URIStorage {
             payable(msg.sender),
             payable(address(0)),
             price,
-            collection_id,
             0 // number of transfer
         );
 
@@ -103,7 +74,6 @@ contract SahabaMarketplace is ERC721URIStorage {
         return _tokenId;
     }
 
-    /// @notice function to buy a token
     function buyToken(uint256 tokenId) public payable {
         // check if the function caller is not an zero account address
         require(msg.sender != address(0), "address not found");

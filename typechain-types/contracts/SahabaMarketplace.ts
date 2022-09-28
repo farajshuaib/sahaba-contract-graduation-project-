@@ -36,8 +36,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "changeTokenPrice(uint256,uint256)": FunctionFragment;
     "collectionName()": FunctionFragment;
     "collectionNameSymbol()": FunctionFragment;
-    "createAndListToken(string,uint256,uint256)": FunctionFragment;
-    "createCollection(string)": FunctionFragment;
+    "createAndListToken(string,uint256)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getServiceFeesPrice()": FunctionFragment;
     "getTokenExists(uint256)": FunctionFragment;
@@ -67,7 +66,6 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
       | "collectionName"
       | "collectionNameSymbol"
       | "createAndListToken"
-      | "createCollection"
       | "getApproved"
       | "getServiceFeesPrice"
       | "getTokenExists"
@@ -114,15 +112,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createAndListToken",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createCollection",
-    values: [PromiseOrValue<string>]
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -221,10 +211,6 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "createAndListToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "createCollection",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -391,13 +377,7 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
-      collection_id: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    createCollection(
-      name: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     getApproved(
@@ -520,13 +500,7 @@ export interface SahabaMarketplace extends BaseContract {
   createAndListToken(
     tokenURI: PromiseOrValue<string>,
     price: PromiseOrValue<BigNumberish>,
-    collection_id: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  createCollection(
-    name: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   getApproved(
@@ -649,12 +623,6 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
-      collection_id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    createCollection(
-      name: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -814,13 +782,7 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
-      collection_id: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    createCollection(
-      name: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     getApproved(
@@ -946,13 +908,7 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
-      collection_id: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    createCollection(
-      name: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getApproved(
