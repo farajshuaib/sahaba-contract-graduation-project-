@@ -17,7 +17,7 @@ contract SahabaMarketplace is ERC721URIStorage {
     //people have to pay to puy their NFT on this marketplace
     uint256 private service_fees = 0.025 ether;
 
-    constructor() ERC721("sahabaNFT", "NFT") {
+    constructor() ERC721("sahabaMarketplace", "NFT") {
         collectionName = name();
         collectionNameSymbol = symbol();
         owner = payable(msg.sender);
@@ -89,9 +89,10 @@ contract SahabaMarketplace is ERC721URIStorage {
         // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[tokenId];
         // price sent in to buy should be equal to or more than the token's price
-        require(msg.value >= marketItem.price, "price is less than required");
+        uint256 requiredValue = service_fees + marketItem.price;
+        require(msg.value >= requiredValue, "you're not sending enough money to buy this NFT");
         // send token's worth of ethers to the owner
-        marketItem.currentOwner.transfer(msg.value);
+        marketItem.currentOwner.transfer(marketItem.price);
         // transfer the token from owner to the caller of the function (buyer)
         _transfer(tokenOwner, msg.sender, tokenId); // _transfer(from, to, token_id)
         // update the token's previous owner
