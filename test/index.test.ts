@@ -1,4 +1,5 @@
-import { formatEther, parseEther } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
 
 const { ethers } = require("hardhat");
 
@@ -6,12 +7,12 @@ describe("sahaba NFT Marketplace contract functions", async function () {
   // general variable ...
   let Market: any,
     market: any,
-    tokenId: number,
-    listingPrice: number,
-    collectionId: number;
+    tokenId: string,
+    serviceFeesPrice: number,
+    token: any;
 
-  const Price = parseEther("100");
-  
+  const Price = parseEther("5");
+
   beforeEach(async () => {
     Market = await ethers.getContractFactory("SahabaMarketplace");
     market = await Market.deploy();
@@ -19,38 +20,50 @@ describe("sahaba NFT Marketplace contract functions", async function () {
 
     const marketAddress = market.address;
     console.log("marketAddress", marketAddress);
+
     const collectionNameSymbol = await market.collectionNameSymbol;
-    console.log("collectionNameSymbol", collectionNameSymbol);
+    console.log("collectionNameSymbol", collectionNameSymbol());
+
     const collectionName = await market.collectionName;
-    console.log("collectionName", collectionName);
+    console.log("collectionName", collectionName());
   });
 
   it("should get listing  price", async function () {
-    //get the listing price
-    listingPrice = (await market.getListingPrice()).toString();
-    console.log(" listing price", listingPrice);
+    serviceFeesPrice = (await market.getServiceFeesPrice()).toString();
+    console.log("Service Fees price", formatEther(serviceFeesPrice).toString());
   });
 
-  it("Should create collection", async function () {
-    const res = await market.createCollection("art");
-    console.log("collectionId id", res.value);
-    collectionId = res.value;
-  });
-
-  it("should create nft and list it", async function () {
-    //create test tokens
-    const res = await market.createAndListToken(
+  it("should create nft and list it then get it ", async function () {
+    const tx = await market.createAndListToken(
       "https://laravel.com/img/logomark.min.svg",
-      Price,
-      collectionId
+      parseEther(Price.toString())
     );
-    console.log("token id", res.value.toString());
-    tokenId = res.value;
+
+    const res = await tx.wait();
+
+    const token_id = BigNumber.from(res.events[0].args.tokenId).toString();
+
+    console.log("token id", token_id);
+    tokenId = token_id;
+
+    token = await market.getTokenById(token_id);
+    console.log("token", token);
   });
+
+
 
   it("should buy token...", async function () {
     //create test tokens
-    const res = await market.buyToken(0);
+    const tokenPrice = parseUnits(token.price).toString()
+    console.log("tokenPrice", tokenPrice);
+    
+    const amount = parseEther(
+      (parseFloat(serviceFeesPrice.toString()) + parseFloat(token.price.toString())).toString()
+    );
+    const res = await market.buyToken(tokenId, {
+      value: parseEther(token.price).toString(),
+      gasLimit: 1 * 10 ** 6,
+    });
     console.log("token id", res.value.toString());
   });
 });

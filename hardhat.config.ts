@@ -32,6 +32,14 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 1337,
     },
+    mumbai: {
+      url: `https://polygon-mumbai.infura.io/v3/${process.env.PROJECT_ID}`,
+      accounts: [process.env.PRIVATE_KEY || ""],
+    },
+    polygon: {
+      url: `https://polygon-mainnet.infura.io/v3/${process.env.PROJECT_ID}`,
+      accounts: [process.env.PRIVATE_KEY || ""], 
+    },
     goerli: {
       url: `https://goerli.infura.io/v3/${process.env.PROJECT_ID}`,
       accounts: [process.env.PRIVATE_KEY || ""],

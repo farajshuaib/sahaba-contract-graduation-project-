@@ -15,7 +15,7 @@ contract SahabaMarketplace is ERC721URIStorage {
     //owner of the smart contract
     address payable owner;
     //people have to pay to puy their NFT on this marketplace
-    uint256 private service_fees = 0.025 ether;
+    uint256 private service_fees = 0.001 ether;
 
     constructor() ERC721("sahabaMarketplace", "NFT") {
         collectionName = name();
@@ -162,5 +162,24 @@ contract SahabaMarketplace is ERC721URIStorage {
     function getTokenExists(uint256 tokenId) public view returns (bool) {
         bool tokenExists = _exists(tokenId);
         return tokenExists;
+    }
+
+    function getTokenById(uint256 tokenId) public view returns (MarketItem memory)  {
+        bool tokenExists = _exists(tokenId);
+        require(tokenExists, "token does not exist");
+        MarketItem memory marketItem = idMarketItem[tokenId];
+        return marketItem;
+    }
+
+     function burn(uint256 tokenId) public  {
+        bool tokenExists = _exists(tokenId);
+        require(tokenExists, "token does not exist");
+
+        address tokenOwner = ownerOf(tokenId);
+
+        require(tokenOwner == msg.sender, "you're not allowed to maintain this token");
+
+        _burn(tokenId);
+
     }
 }
