@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
 import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
-
+const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("sahaba NFT Marketplace contract functions", async function () {
@@ -9,13 +9,26 @@ describe("sahaba NFT Marketplace contract functions", async function () {
     market: any,
     tokenId: string,
     serviceFeesPrice: number,
+    address: string,
     token: any;
 
   const Price = parseEther("5");
 
+  it("Deployment should assign the total supply of tokens to the owner", async function () {
+    const [owner] = await ethers.getSigners();
+
+    const Token = await ethers.getContractFactory("Token");
+
+    const hardhatToken = await Token.deploy();
+
+    const ownerBalance = await hardhatToken.balanceOf(owner.address);
+    expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
+  });
+
   beforeEach(async () => {
     Market = await ethers.getContractFactory("SahabaMarketplace");
     market = await Market.deploy();
+    address = await market.address;
     await market.deployed(); //deploy the NFTMarket contract
 
     const marketAddress = market.address;
@@ -28,12 +41,19 @@ describe("sahaba NFT Marketplace contract functions", async function () {
     console.log("collectionName", collectionName());
   });
 
-  it("should get listing  price", async function () {
+  it("should get Service Fees", async function () {
     serviceFeesPrice = (await market.getServiceFeesPrice()).toString();
     console.log("Service Fees price", formatEther(serviceFeesPrice).toString());
   });
 
-  it("should create nft and list it then get it ", async function () {
+  it("should update Service Fees", async function () {
+    serviceFeesPrice = (
+      await market.setServiceFeesPrice(parseEther("0.1"))
+    ).toString();
+    console.log("Service Fees price", formatEther(serviceFeesPrice).toString());
+  });
+
+  it("should create nft and list it", async function () {
     const tx = await market.createAndListToken(
       "https://laravel.com/img/logomark.min.svg",
       parseEther(Price.toString())
@@ -45,25 +65,57 @@ describe("sahaba NFT Marketplace contract functions", async function () {
 
     console.log("token id", token_id);
     tokenId = token_id;
+  });
 
-    token = await market.getTokenById(token_id);
+  it("should get token by id", async function () {
+    token = await market.getTokenById(tokenId);
     console.log("token", token);
   });
 
+  it("should get token owner", async function () {
+    const tokenOwner = await market.getTokenOwner(tokenId);
+    console.log("tokenOwner", tokenOwner);
+  });
 
+  it("should get token URI", async function () {
+    const tokenUri = await market.getTokenURI(tokenId);
+    console.log("tokenUri", tokenUri);
+  });
+
+  it("should get total number of tokens owned by an address", async function () {
+    const author_balance = await market.getTotalNumberOfTokensOwnedByAnAddress(
+      address
+    );
+    console.log("author_balance", author_balance);
+  });
+
+  it("should get token exists", async function () {
+    const TokenExists = await market.getTokenExists(tokenId);
+    console.log("TokenExists", TokenExists);
+  });
+
+  it("should change token price", async function () {
+    await market.changeTokenPrice(tokenId, parseEther("10"));
+  });
 
   it("should buy token...", async function () {
-    //create test tokens
-    const tokenPrice = parseUnits(token.price).toString()
+    const tokenPrice = parseUnits(token.price).toString();
     console.log("tokenPrice", tokenPrice);
-    
+
     const amount = parseEther(
-      (parseFloat(serviceFeesPrice.toString()) + parseFloat(token.price.toString())).toString()
+      (
+        parseFloat(serviceFeesPrice.toString()) +
+        parseFloat(token.price.toString())
+      ).toString()
     );
     const res = await market.buyToken(tokenId, {
       value: parseEther(token.price).toString(),
       gasLimit: 1 * 10 ** 6,
     });
     console.log("token id", res.value.toString());
+  });
+
+  it("should burn token", async function () {
+    await market.burn(tokenId);
   });
 });

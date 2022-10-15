@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
 contract SahabaMarketplace is ERC721URIStorage {
     //auto-increment field for each token
-    uint256 private _tokenId = 0 ;
+    uint256 private _tokenId = 0;
 
     // this contract's token collection name
     string public collectionName;
@@ -15,14 +15,13 @@ contract SahabaMarketplace is ERC721URIStorage {
     //owner of the smart contract
     address payable owner;
     //people have to pay to puy their NFT on this marketplace
-    uint256 private service_fees = 0.001 ether;
+    uint private _service_fees = 0.025 ether;
 
     constructor() ERC721("sahabaMarketplace", "NFT") {
         collectionName = name();
         collectionNameSymbol = symbol();
         owner = payable(msg.sender);
     }
-
 
     struct MarketItem {
         uint256 tokenId;
@@ -37,7 +36,6 @@ contract SahabaMarketplace is ERC721URIStorage {
     mapping(uint256 => MarketItem) private idMarketItem;
     // check if token URI exists
     mapping(string => bool) public tokenURIExists;
-
 
     /// @notice function to create market item
     function createAndListToken(string memory tokenURI, uint256 price)
@@ -89,10 +87,13 @@ contract SahabaMarketplace is ERC721URIStorage {
         // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[tokenId];
         // price sent in to buy should be equal to or more than the token's price
-        uint256 requiredValue = service_fees + marketItem.price;
-        require(msg.value >= requiredValue, "you're not sending enough money to buy this NFT");
-        // send token's worth of ethers to the owner
-        marketItem.currentOwner.transfer(marketItem.price);
+        require(
+            msg.value >= marketItem.price,
+            "you're not sending enough money to buy this NFT"
+        );
+
+        sendMonyToOwnerAndPlatform(marketItem.price, marketItem.currentOwner);
+
         // transfer the token from owner to the caller of the function (buyer)
         _transfer(tokenOwner, msg.sender, tokenId); // _transfer(from, to, token_id)
         // update the token's previous owner
@@ -103,8 +104,16 @@ contract SahabaMarketplace is ERC721URIStorage {
         marketItem.numberOfTransfers += 1;
         // set and update that token in the mapping
         idMarketItem[tokenId] = marketItem;
+    }
+
+    function sendMonyToOwnerAndPlatform(uint256 price, address payable currentOwner) private {
+        // calc fees
+        uint256 fees = price * _service_fees;
+        uint256 ownerRecieve = price - fees;
+        // send token's worth of ethers to the owner
+        currentOwner.transfer(ownerRecieve);
         //pay owner of contract the service fees
-        payable(owner).transfer(service_fees);
+        payable(owner).transfer(fees);
     }
 
     function changeTokenPrice(uint256 tokenId, uint256 _newPrice) public {
@@ -113,7 +122,10 @@ contract SahabaMarketplace is ERC721URIStorage {
         // get the token's owner
         address tokenOwner = ownerOf(tokenId);
         // check that token's owner should be equal to the caller of the function
-        require(tokenOwner == msg.sender, "you're not allowed to maintain this token");
+        require(
+            tokenOwner == msg.sender,
+            "you're not allowed to maintain this token"
+        );
 
         MarketItem memory marketItem = idMarketItem[tokenId];
         // update token's price with new price
@@ -122,18 +134,16 @@ contract SahabaMarketplace is ERC721URIStorage {
         idMarketItem[tokenId] = marketItem;
     }
 
-
     function getServiceFeesPrice() public view returns (uint256) {
-        return service_fees;
+        return _service_fees;
     }
 
-    function setServiceFeesPrice(uint256 _price) public returns (uint256) {
+    function setServiceFeesPrice(uint256 price) public {
         require(
             msg.sender == owner,
-            "you don't have access to modify the token price"
+            "you don't have access to modify the platform service fees"
         );
-        service_fees = _price;
-        return service_fees;
+        _service_fees = price;
     }
 
     // get owner of the token
@@ -164,22 +174,28 @@ contract SahabaMarketplace is ERC721URIStorage {
         return tokenExists;
     }
 
-    function getTokenById(uint256 tokenId) public view returns (MarketItem memory)  {
+    function getTokenById(uint256 tokenId)
+        public
+        view
+        returns (MarketItem memory)
+    {
         bool tokenExists = _exists(tokenId);
         require(tokenExists, "token does not exist");
         MarketItem memory marketItem = idMarketItem[tokenId];
         return marketItem;
     }
 
-     function burn(uint256 tokenId) public  {
+    function burn(uint256 tokenId) public {
         bool tokenExists = _exists(tokenId);
         require(tokenExists, "token does not exist");
 
         address tokenOwner = ownerOf(tokenId);
 
-        require(tokenOwner == msg.sender, "you're not allowed to maintain this token");
+        require(
+            tokenOwner == msg.sender,
+            "you're not allowed to maintain this token"
+        );
 
         _burn(tokenId);
-
     }
 }

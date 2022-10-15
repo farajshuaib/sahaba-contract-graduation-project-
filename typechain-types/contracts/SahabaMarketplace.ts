@@ -496,7 +496,7 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<ContractTransaction>;
 
     setServiceFeesPrice(
-      _price: PromiseOrValue<BigNumberish>,
+      price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -629,7 +629,7 @@ export interface SahabaMarketplace extends BaseContract {
   ): Promise<ContractTransaction>;
 
   setServiceFeesPrice(
-    _price: PromiseOrValue<BigNumberish>,
+    price: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -762,9 +762,9 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<void>;
 
     setServiceFeesPrice(
-      _price: PromiseOrValue<BigNumberish>,
+      price: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
     supportsInterface(
       interfaceId: PromiseOrValue<BytesLike>,
@@ -931,7 +931,7 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<BigNumber>;
 
     setServiceFeesPrice(
-      _price: PromiseOrValue<BigNumberish>,
+      price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1069,7 +1069,7 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     setServiceFeesPrice(
-      _price: PromiseOrValue<BigNumberish>,
+      price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
