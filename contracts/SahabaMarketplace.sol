@@ -15,9 +15,9 @@ contract SahabaMarketplace is ERC721URIStorage {
     //owner of the smart contract
     address payable owner;
     //people have to pay to puy their NFT on this marketplace
-    uint private _service_fees = 0.025 ether;
+    uint256 private _service_fees = 0.025 ether; // since 1 Ether is 10**18 Wei. 0.025 Ether is 0.025 * 10**18 Wei
 
-    constructor() ERC721("sahabaMarketplace", "NFT") {
+    constructor() ERC721("sahabaMarketplace", "SAHABA") {
         collectionName = name();
         collectionNameSymbol = symbol();
         owner = payable(msg.sender);
@@ -29,6 +29,7 @@ contract SahabaMarketplace is ERC721URIStorage {
         address payable currentOwner;
         address payable previousOwner;
         uint256 price;
+        uint256 platformFees;
         uint256 numberOfTransfers;
     }
 
@@ -53,6 +54,13 @@ contract SahabaMarketplace is ERC721URIStorage {
         //set a new token id for the token to be minted
         _tokenId = _tokenId + 1;
 
+        // calc the platform fees
+        uint256 platformFees = 0;
+        if(_service_fees > 0){
+            platformFees = (price * _service_fees) / 1 ether;
+        }
+        uint256 _price = (price - platformFees) / 1 ether;
+
         _mint(msg.sender, _tokenId); // mint the token
         _setTokenURI(_tokenId, tokenURI); //generate the URI
         setApprovalForAll(address(this), true); //grant transaction permission to marketplace
@@ -62,7 +70,8 @@ contract SahabaMarketplace is ERC721URIStorage {
             payable(msg.sender),
             payable(msg.sender),
             payable(address(0)),
-            price,
+            _price,
+            platformFees,
             0 // number of transfer
         );
 
@@ -92,8 +101,12 @@ contract SahabaMarketplace is ERC721URIStorage {
             "you're not sending enough money to buy this NFT"
         );
 
-        sendMonyToOwnerAndPlatform(marketItem.price, marketItem.currentOwner);
-
+        // send token's worth of ethers to the owner
+        marketItem.currentOwner.transfer(marketItem.price);
+        //pay owner of contract the service fees
+        if(marketItem.platformFees > 0){
+            owner.transfer(marketItem.platformFees);
+        }
         // transfer the token from owner to the caller of the function (buyer)
         _transfer(tokenOwner, msg.sender, tokenId); // _transfer(from, to, token_id)
         // update the token's previous owner
@@ -104,16 +117,6 @@ contract SahabaMarketplace is ERC721URIStorage {
         marketItem.numberOfTransfers += 1;
         // set and update that token in the mapping
         idMarketItem[tokenId] = marketItem;
-    }
-
-    function sendMonyToOwnerAndPlatform(uint256 price, address payable currentOwner) private {
-        // calc fees
-        uint256 fees = price * _service_fees;
-        uint256 ownerRecieve = price - fees;
-        // send token's worth of ethers to the owner
-        currentOwner.transfer(ownerRecieve);
-        //pay owner of contract the service fees
-        payable(owner).transfer(fees);
     }
 
     function changeTokenPrice(uint256 tokenId, uint256 _newPrice) public {

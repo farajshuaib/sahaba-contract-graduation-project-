@@ -35,6 +35,7 @@ export declare namespace SahabaMarketplace {
     currentOwner: PromiseOrValue<string>;
     previousOwner: PromiseOrValue<string>;
     price: PromiseOrValue<BigNumberish>;
+    platformFees: PromiseOrValue<BigNumberish>;
     numberOfTransfers: PromiseOrValue<BigNumberish>;
   };
 
@@ -44,6 +45,7 @@ export declare namespace SahabaMarketplace {
     string,
     string,
     BigNumber,
+    BigNumber,
     BigNumber
   ] & {
     tokenId: BigNumber;
@@ -51,6 +53,7 @@ export declare namespace SahabaMarketplace {
     currentOwner: string;
     previousOwner: string;
     price: BigNumber;
+    platformFees: BigNumber;
     numberOfTransfers: BigNumber;
   };
 }
