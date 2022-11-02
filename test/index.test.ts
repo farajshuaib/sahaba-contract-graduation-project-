@@ -12,20 +12,10 @@ describe("sahaba NFT Marketplace contract functions", async function () {
     address: string,
     token: any;
 
-  const Price = parseEther("5");
+  const Price = parseEther("0.1");
 
-  it("Deployment should assign the total supply of tokens to the owner", async function () {
-    const [owner] = await ethers.getSigners();
 
-    const Token = await ethers.getContractFactory("Token");
-
-    const hardhatToken = await Token.deploy();
-
-    const ownerBalance = await hardhatToken.balanceOf(owner.address);
-    expect(await hardhatToken.totalSupply()).to.equal(ownerBalance);
-  });
-
-  beforeEach(async () => {
+  beforeAll(async () => {
     Market = await ethers.getContractFactory("SahabaMarketplace");
     market = await Market.deploy();
     address = await market.address;

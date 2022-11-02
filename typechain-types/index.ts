@@ -6,6 +6,8 @@ export type { openzeppelin };
 import type * as contracts from "./contracts";
 export type { contracts };
 export * as factories from "./factories";
+export type { Ownable } from "./@openzeppelin/contracts/access/Ownable";
+export { Ownable__factory } from "./factories/@openzeppelin/contracts/access/Ownable__factory";
 export type { ERC721 } from "./@openzeppelin/contracts/token/ERC721/ERC721";
 export { ERC721__factory } from "./factories/@openzeppelin/contracts/token/ERC721/ERC721__factory";
 export type { ERC721URIStorage } from "./@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage";

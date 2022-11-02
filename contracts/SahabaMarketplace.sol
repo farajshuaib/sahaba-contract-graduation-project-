@@ -1,26 +1,23 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0 <0.9.0;
+pragma solidity >0.4.0 <0.9.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract SahabaMarketplace is ERC721URIStorage {
+contract SahabaMarketplace is ERC721URIStorage, Ownable {
     //auto-increment field for each token
     uint256 private _tokenId = 0;
-
     // this contract's token collection name
     string public collectionName;
     // this contract's token symbol
     string public collectionNameSymbol;
-    //owner of the smart contract
-    address payable owner;
     //people have to pay to puy their NFT on this marketplace
     uint256 private _service_fees = 0.025 ether; // since 1 Ether is 10**18 Wei. 0.025 Ether is 0.025 * 10**18 Wei
 
-    constructor() ERC721("sahabaMarketplace", "SAHABA") {
+    constructor() ERC721("Sahaba_NFT_Marketplace", "SAHABA") {
         collectionName = name();
         collectionNameSymbol = symbol();
-        owner = payable(msg.sender);
     }
 
     struct MarketItem {
@@ -56,7 +53,7 @@ contract SahabaMarketplace is ERC721URIStorage {
 
         // calc the platform fees
         uint256 platformFees = 0;
-        if(_service_fees > 0){
+        if (_service_fees > 0) {
             platformFees = (price * _service_fees) / 1 ether;
         }
         uint256 _price = (price - platformFees) / 1 ether;
@@ -104,8 +101,8 @@ contract SahabaMarketplace is ERC721URIStorage {
         // send token's worth of ethers to the owner
         marketItem.currentOwner.transfer(marketItem.price);
         //pay owner of contract the service fees
-        if(marketItem.platformFees > 0){
-            owner.transfer(marketItem.platformFees);
+        if (marketItem.platformFees > 0) {
+            payable(owner()).transfer(marketItem.platformFees);
         }
         // transfer the token from owner to the caller of the function (buyer)
         _transfer(tokenOwner, msg.sender, tokenId); // _transfer(from, to, token_id)
@@ -141,9 +138,9 @@ contract SahabaMarketplace is ERC721URIStorage {
         return _service_fees;
     }
 
-    function setServiceFeesPrice(uint256 price) public {
+    function setServiceFeesPrice(uint256 price) public onlyOwner {
         require(
-            msg.sender == owner,
+            msg.sender == owner(),
             "you don't have access to modify the platform service fees"
         );
         _service_fees = price;
