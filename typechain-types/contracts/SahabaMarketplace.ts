@@ -29,6 +29,25 @@ import type {
 } from "../common";
 
 export declare namespace SahabaMarketplace {
+  export type CollectionsStruct = {
+    tokenId: PromiseOrValue<BigNumberish>;
+    createdBy: PromiseOrValue<string>;
+    name: PromiseOrValue<string>;
+    collaborators: PromiseOrValue<string>[];
+  };
+
+  export type CollectionsStructOutput = [
+    BigNumber,
+    string,
+    string,
+    string[]
+  ] & {
+    tokenId: BigNumber;
+    createdBy: string;
+    name: string;
+    collaborators: string[];
+  };
+
   export type MarketItemStruct = {
     tokenId: PromiseOrValue<BigNumberish>;
     mintedBy: PromiseOrValue<string>;
@@ -36,7 +55,9 @@ export declare namespace SahabaMarketplace {
     previousOwner: PromiseOrValue<string>;
     price: PromiseOrValue<BigNumberish>;
     platformFees: PromiseOrValue<BigNumberish>;
+    collectionId: PromiseOrValue<BigNumberish>;
     numberOfTransfers: PromiseOrValue<BigNumberish>;
+    isForSale: PromiseOrValue<boolean>;
   };
 
   export type MarketItemStructOutput = [
@@ -46,7 +67,9 @@ export declare namespace SahabaMarketplace {
     string,
     BigNumber,
     BigNumber,
-    BigNumber
+    BigNumber,
+    BigNumber,
+    boolean
   ] & {
     tokenId: BigNumber;
     mintedBy: string;
@@ -54,12 +77,15 @@ export declare namespace SahabaMarketplace {
     previousOwner: string;
     price: BigNumber;
     platformFees: BigNumber;
+    collectionId: BigNumber;
     numberOfTransfers: BigNumber;
+    isForSale: boolean;
   };
 }
 
 export interface SahabaMarketplaceInterface extends utils.Interface {
   functions: {
+    "addCollaborators(uint256,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
@@ -67,18 +93,19 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "changeTokenPrice(uint256,uint256)": FunctionFragment;
     "collectionName()": FunctionFragment;
     "collectionNameSymbol()": FunctionFragment;
-    "createAndListToken(string,uint256)": FunctionFragment;
+    "createAndListToken(string,uint256,uint256)": FunctionFragment;
+    "createCollection(string,address[])": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
+    "getCollection(uint256)": FunctionFragment;
+    "getCollectionCollaborators(uint256)": FunctionFragment;
+    "getMarketItem(uint256)": FunctionFragment;
     "getServiceFeesPrice()": FunctionFragment;
-    "getTokenById(uint256)": FunctionFragment;
     "getTokenExists(uint256)": FunctionFragment;
-    "getTokenOwner(uint256)": FunctionFragment;
-    "getTokenURI(uint256)": FunctionFragment;
-    "getTotalNumberOfTokensOwnedByAnAddress(address)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "name()": FunctionFragment;
     "owner()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
+    "removeCollaborators(uint256,address)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,bytes)": FunctionFragment;
@@ -86,6 +113,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "setServiceFeesPrice(uint256)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
+    "toggleForSale(uint256)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
     "tokenURIExists(string)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
@@ -94,6 +122,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "addCollaborators"
       | "approve"
       | "balanceOf"
       | "burn"
@@ -102,17 +131,18 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
       | "collectionName"
       | "collectionNameSymbol"
       | "createAndListToken"
+      | "createCollection"
       | "getApproved"
+      | "getCollection"
+      | "getCollectionCollaborators"
+      | "getMarketItem"
       | "getServiceFeesPrice"
-      | "getTokenById"
       | "getTokenExists"
-      | "getTokenOwner"
-      | "getTokenURI"
-      | "getTotalNumberOfTokensOwnedByAnAddress"
       | "isApprovedForAll"
       | "name"
       | "owner"
       | "ownerOf"
+      | "removeCollaborators"
       | "renounceOwnership"
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
@@ -120,12 +150,17 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
       | "setServiceFeesPrice"
       | "supportsInterface"
       | "symbol"
+      | "toggleForSale"
       | "tokenURI"
       | "tokenURIExists"
       | "transferFrom"
       | "transferOwnership"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "addCollaborators",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
@@ -156,10 +191,30 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createAndListToken",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [
+      PromiseOrValue<string>,
+      PromiseOrValue<BigNumberish>,
+      PromiseOrValue<BigNumberish>
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "createCollection",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCollection",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCollectionCollaborators",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getMarketItem",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
@@ -167,24 +222,8 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getTokenById",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getTokenExists",
     values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenOwner",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenURI",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalNumberOfTokensOwnedByAnAddress",
-    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
@@ -195,6 +234,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "ownerOf",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeCollaborators",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -231,6 +274,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "toggleForSale",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "tokenURI",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
@@ -251,6 +298,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "addCollaborators",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
@@ -272,7 +323,23 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "createCollection",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getApproved",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCollection",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCollectionCollaborators",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getMarketItem",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -280,23 +347,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getTokenById",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getTokenExists",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenOwner",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenURI",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalNumberOfTokensOwnedByAnAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -306,6 +357,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "removeCollaborators",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -331,6 +386,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "toggleForSale",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenURIExists",
@@ -348,12 +407,14 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "CollectionCreated(uint256,address,string,address[])": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollectionCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
@@ -381,6 +442,20 @@ export type ApprovalForAllEvent = TypedEvent<
 >;
 
 export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
+
+export interface CollectionCreatedEventObject {
+  collectionId: BigNumber;
+  createdBy: string;
+  name: string;
+  collaborators: string[];
+}
+export type CollectionCreatedEvent = TypedEvent<
+  [BigNumber, string, string, string[]],
+  CollectionCreatedEventObject
+>;
+
+export type CollectionCreatedEventFilter =
+  TypedEventFilter<CollectionCreatedEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -433,6 +508,12 @@ export interface SahabaMarketplace extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    addCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     approve(
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
@@ -467,7 +548,14 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      _collectionId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    createCollection(
+      _name: PromiseOrValue<string>,
+      _collaborators: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     getApproved(
@@ -475,32 +563,27 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getServiceFeesPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
+    getCollection(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[SahabaMarketplace.CollectionsStructOutput]>;
 
-    getTokenById(
+    getCollectionCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
+
+    getMarketItem(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[SahabaMarketplace.MarketItemStructOutput]>;
+
+    getServiceFeesPrice(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    getTokenOwner(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getTokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    getTotalNumberOfTokensOwnedByAnAddress(
-      _owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     isApprovedForAll(
       owner: PromiseOrValue<string>,
@@ -516,6 +599,12 @@ export interface SahabaMarketplace extends BaseContract {
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    removeCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -554,6 +643,11 @@ export interface SahabaMarketplace extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
+    toggleForSale(
+      _tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -576,6 +670,12 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
+
+  addCollaborators(
+    _collectionId: PromiseOrValue<BigNumberish>,
+    _collaborators: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   approve(
     to: PromiseOrValue<string>,
@@ -611,7 +711,14 @@ export interface SahabaMarketplace extends BaseContract {
   createAndListToken(
     tokenURI: PromiseOrValue<string>,
     price: PromiseOrValue<BigNumberish>,
+    _collectionId: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  createCollection(
+    _name: PromiseOrValue<string>,
+    _collaborators: PromiseOrValue<string>[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   getApproved(
@@ -619,32 +726,27 @@ export interface SahabaMarketplace extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
+  getCollection(
+    _collectionId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<SahabaMarketplace.CollectionsStructOutput>;
 
-  getTokenById(
+  getCollectionCollaborators(
+    _collectionId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  getMarketItem(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<SahabaMarketplace.MarketItemStructOutput>;
+
+  getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
   getTokenExists(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  getTokenOwner(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getTokenURI(
-    tokenId: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  getTotalNumberOfTokensOwnedByAnAddress(
-    _owner: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   isApprovedForAll(
     owner: PromiseOrValue<string>,
@@ -660,6 +762,12 @@ export interface SahabaMarketplace extends BaseContract {
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  removeCollaborators(
+    _collectionId: PromiseOrValue<BigNumberish>,
+    _collaborators: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -698,6 +806,11 @@ export interface SahabaMarketplace extends BaseContract {
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
+  toggleForSale(
+    _tokenId: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   tokenURI(
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
@@ -721,6 +834,12 @@ export interface SahabaMarketplace extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    addCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     approve(
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
@@ -755,6 +874,13 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    createCollection(
+      _name: PromiseOrValue<string>,
+      _collaborators: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -763,32 +889,27 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
+    getCollection(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<SahabaMarketplace.CollectionsStructOutput>;
 
-    getTokenById(
+    getCollectionCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
+
+    getMarketItem(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<SahabaMarketplace.MarketItemStructOutput>;
+
+    getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    getTokenOwner(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getTokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getTotalNumberOfTokensOwnedByAnAddress(
-      _owner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     isApprovedForAll(
       owner: PromiseOrValue<string>,
@@ -804,6 +925,12 @@ export interface SahabaMarketplace extends BaseContract {
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    removeCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -839,6 +966,11 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<boolean>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
+
+    toggleForSale(
+      _tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -886,6 +1018,19 @@ export interface SahabaMarketplace extends BaseContract {
       approved?: null
     ): ApprovalForAllEventFilter;
 
+    "CollectionCreated(uint256,address,string,address[])"(
+      collectionId?: null,
+      createdBy?: null,
+      name?: null,
+      collaborators?: null
+    ): CollectionCreatedEventFilter;
+    CollectionCreated(
+      collectionId?: null,
+      createdBy?: null,
+      name?: null,
+      collaborators?: null
+    ): CollectionCreatedEventFilter;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
@@ -908,6 +1053,12 @@ export interface SahabaMarketplace extends BaseContract {
   };
 
   estimateGas: {
+    addCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     approve(
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
@@ -942,7 +1093,14 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      _collectionId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    createCollection(
+      _name: PromiseOrValue<string>,
+      _collaborators: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     getApproved(
@@ -950,30 +1108,25 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
+    getCollection(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    getTokenById(
+    getCollectionCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getMarketItem(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getServiceFeesPrice(overrides?: CallOverrides): Promise<BigNumber>;
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenOwner(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTotalNumberOfTokensOwnedByAnAddress(
-      _owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -990,6 +1143,12 @@ export interface SahabaMarketplace extends BaseContract {
     ownerOf(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    removeCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     renounceOwnership(
@@ -1029,6 +1188,11 @@ export interface SahabaMarketplace extends BaseContract {
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
+    toggleForSale(
+      _tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1053,6 +1217,12 @@ export interface SahabaMarketplace extends BaseContract {
   };
 
   populateTransaction: {
+    addCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     approve(
       to: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
@@ -1089,10 +1259,32 @@ export interface SahabaMarketplace extends BaseContract {
     createAndListToken(
       tokenURI: PromiseOrValue<string>,
       price: PromiseOrValue<BigNumberish>,
+      _collectionId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    createCollection(
+      _name: PromiseOrValue<string>,
+      _collaborators: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     getApproved(
+      tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCollection(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCollectionCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getMarketItem(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1101,28 +1293,8 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getTokenById(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenOwner(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenURI(
-      tokenId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTotalNumberOfTokensOwnedByAnAddress(
-      _owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1139,6 +1311,12 @@ export interface SahabaMarketplace extends BaseContract {
     ownerOf(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    removeCollaborators(
+      _collectionId: PromiseOrValue<BigNumberish>,
+      _collaborators: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
@@ -1177,6 +1355,11 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    toggleForSale(
+      _tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
 
     tokenURI(
       tokenId: PromiseOrValue<BigNumberish>,

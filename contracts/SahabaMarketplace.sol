@@ -4,10 +4,14 @@ pragma solidity >0.4.0 <0.9.0;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract SahabaMarketplace is ERC721URIStorage, Ownable {
-    //auto-increment field for each token
-    uint256 private _tokenId = 0;
+    using Counters for Counters.Counter;
+
+    Counters.Counter private _tokenIds;
+    Counters.Counter private _collectionIds;
+
     // this contract's token collection name
     string public collectionName;
     // this contract's token symbol
@@ -27,20 +31,93 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         address payable previousOwner;
         uint256 price;
         uint256 platformFees;
+        uint256 collectionId;
         uint256 numberOfTransfers;
+        bool isForSale;
     }
+
+    struct Collections {
+        uint256 tokenId;
+        address payable createdBy;
+        string name;
+        address[] collaborators;
+    }
+
+    event CollectionCreated(
+        uint256 collectionId,
+        address payable createdBy,
+        string name,
+        address[] collaborators
+    );
 
     // a way to access values of the MarketItem struct above by passing an integer ID
     mapping(uint256 => MarketItem) private idMarketItem;
+
+    mapping(uint256 => Collections) private idCollection;
+
     // check if token URI exists
     mapping(string => bool) public tokenURIExists;
 
-    /// @notice function to create market item
-    function createAndListToken(string memory tokenURI, uint256 price)
+    // create collection
+    function createCollection(
+        string memory _name,
+        address[] memory _collaborators
+    ) public returns (uint256) {
+        //set a new collection id for the token to be minted
+        _collectionIds.increment();
+        uint256 newCollectionId = _collectionIds.current();
+
+        idCollection[newCollectionId] = Collections(
+            newCollectionId,
+            payable(msg.sender),
+            _name,
+            _collaborators
+        );
+
+        emit CollectionCreated(
+            newCollectionId,
+            payable(msg.sender),
+            _name,
+            _collaborators
+        );
+
+        return newCollectionId;
+    }
+
+    // adding collaborators to a collection
+    function addCollaborators(uint256 _collectionId, address _collaborators)
         public
-        payable
-        returns (uint256)
     {
+        require(
+            idCollection[_collectionId].createdBy == msg.sender,
+            "You are not the creator of this collection"
+        );
+
+        idCollection[_collectionId].collaborators.push(_collaborators);
+    }
+
+    // remove collaborators from a collection
+    function removeCollaborators(uint256 _collectionId, address _collaborators)
+        public
+    {
+        require(
+            idCollection[_collectionId].createdBy == msg.sender,
+            "You are not the creator of this collection"
+        );
+
+        for (uint256 i = 0; i < idCollection[_collectionId].collaborators.length; i++) {
+            if (idCollection[_collectionId].collaborators[i] == _collaborators) {
+                idCollection[_collectionId].collaborators.pop();
+            }
+        }
+    }
+
+    /// @notice function to create market item
+    function createAndListToken(
+        string memory tokenURI,
+        uint256 price,
+        uint256 _collectionId
+    ) public payable returns (uint256) {
         // check if thic fucntion caller is not an zero address account
         require(msg.sender != address(0), "address not found !!");
         // check if the token URI already exists or not
@@ -49,7 +126,8 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         require(price > 0, "Price must be above zero");
 
         //set a new token id for the token to be minted
-        _tokenId = _tokenId + 1;
+        _tokenIds.increment();
+        uint256 newItemId = _tokenIds.current();
 
         // calc the platform fees
         uint256 platformFees = 0;
@@ -58,24 +136,51 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         }
         uint256 _price = (price - platformFees) / 1 ether;
 
-        _mint(msg.sender, _tokenId); // mint the token
-        _setTokenURI(_tokenId, tokenURI); //generate the URI
+        _mint(msg.sender, newItemId); // mint the token
+        _setTokenURI(newItemId, tokenURI); //generate the URI
         setApprovalForAll(address(this), true); //grant transaction permission to marketplace
 
         MarketItem memory newItem = MarketItem(
-            _tokenId,
+            newItemId,
             payable(msg.sender),
             payable(msg.sender),
             payable(address(0)),
             _price,
             platformFees,
-            0 // number of transfer
+            _collectionId,
+            0, // number of transfer
+            false
         );
 
-        idMarketItem[_tokenId] = newItem;
+        idMarketItem[newItemId] = newItem;
 
         //return token ID
-        return _tokenId;
+        return newItemId;
+    }
+
+    // switch between set for sale and set not for sale
+    function toggleForSale(uint256 _tokenId) public {
+        // require caller of the function is not an empty address
+        require(msg.sender != address(0), "address not found !!");
+        // require that token should exist
+        require(_exists(_tokenId), "You are not the creator of this token");
+        // get the token's owner
+        address tokenOwner = ownerOf(_tokenId);
+        // check that token's owner should be equal to the caller of the function
+        require(
+            tokenOwner == msg.sender,
+            "you don't own this NFT you can't modify it"
+        );
+        // get that token from idMarketItem mapping and create a memory of it defined as (struct => MarketItem)
+        MarketItem memory marketItem = idMarketItem[_tokenId];
+        // if token's forSale is false make it true and vice versa
+        if (marketItem.isForSale) {
+            marketItem.isForSale = false;
+        } else {
+            marketItem.isForSale = true;
+        }
+        // set and update that token in the mapping
+        idMarketItem[_tokenId] = marketItem;
     }
 
     function buyToken(uint256 tokenId) public payable {
@@ -97,6 +202,9 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
             msg.value >= marketItem.price,
             "you're not sending enough money to buy this NFT"
         );
+
+        // token should be for sale
+        require(marketItem.isForSale, "sorry this NFT is not for salse");
 
         // send token's worth of ethers to the owner
         marketItem.currentOwner.transfer(marketItem.price);
@@ -146,26 +254,12 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         _service_fees = price;
     }
 
-    // get owner of the token
-    function getTokenOwner(uint256 tokenId) public view returns (address) {
-        address _tokenOwner = ownerOf(tokenId);
-        return _tokenOwner;
-    }
-
-    // get metadata of the token
-    function getTokenURI(uint tokenId) public view returns (string memory) {
-        string memory tokenMetaData = tokenURI(tokenId);
-        return tokenMetaData;
-    }
-
-    // get total number of tokens owned by an address
-    function getTotalNumberOfTokensOwnedByAnAddress(address _owner)
+    function getMarketItem(uint256 tokenId)
         public
         view
-        returns (uint256)
+        returns (MarketItem memory)
     {
-        uint256 totalNumberOfTokensOwned = balanceOf(_owner);
-        return totalNumberOfTokensOwned;
+        return idMarketItem[tokenId];
     }
 
     // check if the token already exists
@@ -174,15 +268,20 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         return tokenExists;
     }
 
-    function getTokenById(uint256 tokenId)
+    function getCollection(uint256 _collectionId)
         public
         view
-        returns (MarketItem memory)
+        returns (Collections memory)
     {
-        bool tokenExists = _exists(tokenId);
-        require(tokenExists, "token does not exist");
-        MarketItem memory marketItem = idMarketItem[tokenId];
-        return marketItem;
+        return idCollection[_collectionId];
+    }
+
+    function getCollectionCollaborators(uint256 _collectionId)
+        public
+        view
+        returns (address[] memory)
+    {
+        return idCollection[_collectionId].collaborators;
     }
 
     function burn(uint256 tokenId) public {
