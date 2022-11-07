@@ -94,7 +94,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "collectionName()": FunctionFragment;
     "collectionNameSymbol()": FunctionFragment;
     "createAndListToken(string,uint256,uint256)": FunctionFragment;
-    "createCollection(string,address[])": FunctionFragment;
+    "createCollection(string,address)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getCollection(uint256)": FunctionFragment;
     "getCollectionCollaborators(uint256)": FunctionFragment;
@@ -199,7 +199,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createCollection",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>[]]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -407,16 +407,42 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "CollaboratorAdded(uint256,address)": EventFragment;
+    "CollaboratorRemoved(uint256,address)": EventFragment;
     "CollectionCreated(uint256,address,string,address[])": EventFragment;
+    "NFTCreated(uint256,uint256,address,string,uint256)": EventFragment;
+    "NFTDeleted(uint256,address)": EventFragment;
+    "NFTPriceChanged(uint256,uint256,uint256,address)": EventFragment;
+    "NFTSold(uint256,uint256,address,address,uint256)": EventFragment;
+    "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "ServiceFeesPriceChanged(uint256,uint256)": EventFragment;
+    "SetNewNftPrice(uint256,address,uint256)": EventFragment;
+    "SetNftPlatformFee(uint256,address,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "TransferNftOwnership(uint256,address,address)": EventFragment;
+    "TransferNftPriceToOwner(uint256,address,uint256)": EventFragment;
+    "TransferPlatformFees(uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollaboratorAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CollaboratorRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CollectionCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NFTCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NFTDeleted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NFTPriceChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NFTSold"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NFT_Toggleed_Sale_Status"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ServiceFeesPriceChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetNewNftPrice"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetNftPlatformFee"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferNftOwnership"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferNftPriceToOwner"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferPlatformFees"): EventFragment;
 }
 
 export interface ApprovalEventObject {
@@ -443,6 +469,30 @@ export type ApprovalForAllEvent = TypedEvent<
 
 export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
 
+export interface CollaboratorAddedEventObject {
+  collectionId: BigNumber;
+  collaborator: string;
+}
+export type CollaboratorAddedEvent = TypedEvent<
+  [BigNumber, string],
+  CollaboratorAddedEventObject
+>;
+
+export type CollaboratorAddedEventFilter =
+  TypedEventFilter<CollaboratorAddedEvent>;
+
+export interface CollaboratorRemovedEventObject {
+  collectionId: BigNumber;
+  collaborator: string;
+}
+export type CollaboratorRemovedEvent = TypedEvent<
+  [BigNumber, string],
+  CollaboratorRemovedEventObject
+>;
+
+export type CollaboratorRemovedEventFilter =
+  TypedEventFilter<CollaboratorRemovedEvent>;
+
 export interface CollectionCreatedEventObject {
   collectionId: BigNumber;
   createdBy: string;
@@ -457,6 +507,72 @@ export type CollectionCreatedEvent = TypedEvent<
 export type CollectionCreatedEventFilter =
   TypedEventFilter<CollectionCreatedEvent>;
 
+export interface NFTCreatedEventObject {
+  collectionId: BigNumber;
+  nftId: BigNumber;
+  createdBy: string;
+  image: string;
+  price: BigNumber;
+}
+export type NFTCreatedEvent = TypedEvent<
+  [BigNumber, BigNumber, string, string, BigNumber],
+  NFTCreatedEventObject
+>;
+
+export type NFTCreatedEventFilter = TypedEventFilter<NFTCreatedEvent>;
+
+export interface NFTDeletedEventObject {
+  nftId: BigNumber;
+  deletedBy: string;
+}
+export type NFTDeletedEvent = TypedEvent<
+  [BigNumber, string],
+  NFTDeletedEventObject
+>;
+
+export type NFTDeletedEventFilter = TypedEventFilter<NFTDeletedEvent>;
+
+export interface NFTPriceChangedEventObject {
+  nftId: BigNumber;
+  prevPrice: BigNumber;
+  newPrice: BigNumber;
+  owner: string;
+}
+export type NFTPriceChangedEvent = TypedEvent<
+  [BigNumber, BigNumber, BigNumber, string],
+  NFTPriceChangedEventObject
+>;
+
+export type NFTPriceChangedEventFilter = TypedEventFilter<NFTPriceChangedEvent>;
+
+export interface NFTSoldEventObject {
+  collectionId: BigNumber;
+  nftId: BigNumber;
+  buyer: string;
+  seller: string;
+  price: BigNumber;
+}
+export type NFTSoldEvent = TypedEvent<
+  [BigNumber, BigNumber, string, string, BigNumber],
+  NFTSoldEventObject
+>;
+
+export type NFTSoldEventFilter = TypedEventFilter<NFTSoldEvent>;
+
+export interface NFT_Toggleed_Sale_StatusEventObject {
+  collectionId: BigNumber;
+  nftId: BigNumber;
+  owner: string;
+  isForSale: boolean;
+}
+export type NFT_Toggleed_Sale_StatusEvent = TypedEvent<
+  [BigNumber, BigNumber, string, boolean],
+  NFT_Toggleed_Sale_StatusEventObject
+>;
+
+export type NFT_Toggleed_Sale_StatusEventFilter =
+  TypedEventFilter<NFT_Toggleed_Sale_StatusEvent>;
+
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
@@ -469,6 +585,43 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
+export interface ServiceFeesPriceChangedEventObject {
+  prevPrice: BigNumber;
+  newPrice: BigNumber;
+}
+export type ServiceFeesPriceChangedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  ServiceFeesPriceChangedEventObject
+>;
+
+export type ServiceFeesPriceChangedEventFilter =
+  TypedEventFilter<ServiceFeesPriceChangedEvent>;
+
+export interface SetNewNftPriceEventObject {
+  nftId: BigNumber;
+  owner: string;
+  price: BigNumber;
+}
+export type SetNewNftPriceEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  SetNewNftPriceEventObject
+>;
+
+export type SetNewNftPriceEventFilter = TypedEventFilter<SetNewNftPriceEvent>;
+
+export interface SetNftPlatformFeeEventObject {
+  nftId: BigNumber;
+  owner: string;
+  fee: BigNumber;
+}
+export type SetNftPlatformFeeEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  SetNftPlatformFeeEventObject
+>;
+
+export type SetNftPlatformFeeEventFilter =
+  TypedEventFilter<SetNftPlatformFeeEvent>;
+
 export interface TransferEventObject {
   from: string;
   to: string;
@@ -480,6 +633,44 @@ export type TransferEvent = TypedEvent<
 >;
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
+
+export interface TransferNftOwnershipEventObject {
+  nftId: BigNumber;
+  currentOwner: string;
+  newOwner: string;
+}
+export type TransferNftOwnershipEvent = TypedEvent<
+  [BigNumber, string, string],
+  TransferNftOwnershipEventObject
+>;
+
+export type TransferNftOwnershipEventFilter =
+  TypedEventFilter<TransferNftOwnershipEvent>;
+
+export interface TransferNftPriceToOwnerEventObject {
+  nftId: BigNumber;
+  currentOwner: string;
+  price: BigNumber;
+}
+export type TransferNftPriceToOwnerEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  TransferNftPriceToOwnerEventObject
+>;
+
+export type TransferNftPriceToOwnerEventFilter =
+  TypedEventFilter<TransferNftPriceToOwnerEvent>;
+
+export interface TransferPlatformFeesEventObject {
+  nftId: BigNumber;
+  amount: BigNumber;
+}
+export type TransferPlatformFeesEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  TransferPlatformFeesEventObject
+>;
+
+export type TransferPlatformFeesEventFilter =
+  TypedEventFilter<TransferPlatformFeesEvent>;
 
 export interface SahabaMarketplace extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -510,7 +701,7 @@ export interface SahabaMarketplace extends BaseContract {
   functions: {
     addCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -554,7 +745,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborators: PromiseOrValue<string>[],
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -602,7 +793,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     removeCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -673,7 +864,7 @@ export interface SahabaMarketplace extends BaseContract {
 
   addCollaborators(
     _collectionId: PromiseOrValue<BigNumberish>,
-    _collaborators: PromiseOrValue<string>,
+    _collaborator: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -717,7 +908,7 @@ export interface SahabaMarketplace extends BaseContract {
 
   createCollection(
     _name: PromiseOrValue<string>,
-    _collaborators: PromiseOrValue<string>[],
+    _collaborator: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -765,7 +956,7 @@ export interface SahabaMarketplace extends BaseContract {
 
   removeCollaborators(
     _collectionId: PromiseOrValue<BigNumberish>,
-    _collaborators: PromiseOrValue<string>,
+    _collaborator: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -836,7 +1027,7 @@ export interface SahabaMarketplace extends BaseContract {
   callStatic: {
     addCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -880,7 +1071,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborators: PromiseOrValue<string>[],
+      _collaborator: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -928,7 +1119,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     removeCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1018,6 +1209,24 @@ export interface SahabaMarketplace extends BaseContract {
       approved?: null
     ): ApprovalForAllEventFilter;
 
+    "CollaboratorAdded(uint256,address)"(
+      collectionId?: null,
+      collaborator?: null
+    ): CollaboratorAddedEventFilter;
+    CollaboratorAdded(
+      collectionId?: null,
+      collaborator?: null
+    ): CollaboratorAddedEventFilter;
+
+    "CollaboratorRemoved(uint256,address)"(
+      collectionId?: null,
+      collaborator?: null
+    ): CollaboratorRemovedEventFilter;
+    CollaboratorRemoved(
+      collectionId?: null,
+      collaborator?: null
+    ): CollaboratorRemovedEventFilter;
+
     "CollectionCreated(uint256,address,string,address[])"(
       collectionId?: null,
       createdBy?: null,
@@ -1031,6 +1240,68 @@ export interface SahabaMarketplace extends BaseContract {
       collaborators?: null
     ): CollectionCreatedEventFilter;
 
+    "NFTCreated(uint256,uint256,address,string,uint256)"(
+      collectionId?: null,
+      nftId?: null,
+      createdBy?: null,
+      image?: null,
+      price?: null
+    ): NFTCreatedEventFilter;
+    NFTCreated(
+      collectionId?: null,
+      nftId?: null,
+      createdBy?: null,
+      image?: null,
+      price?: null
+    ): NFTCreatedEventFilter;
+
+    "NFTDeleted(uint256,address)"(
+      nftId?: null,
+      deletedBy?: null
+    ): NFTDeletedEventFilter;
+    NFTDeleted(nftId?: null, deletedBy?: null): NFTDeletedEventFilter;
+
+    "NFTPriceChanged(uint256,uint256,uint256,address)"(
+      nftId?: null,
+      prevPrice?: null,
+      newPrice?: null,
+      owner?: null
+    ): NFTPriceChangedEventFilter;
+    NFTPriceChanged(
+      nftId?: null,
+      prevPrice?: null,
+      newPrice?: null,
+      owner?: null
+    ): NFTPriceChangedEventFilter;
+
+    "NFTSold(uint256,uint256,address,address,uint256)"(
+      collectionId?: null,
+      nftId?: null,
+      buyer?: null,
+      seller?: null,
+      price?: null
+    ): NFTSoldEventFilter;
+    NFTSold(
+      collectionId?: null,
+      nftId?: null,
+      buyer?: null,
+      seller?: null,
+      price?: null
+    ): NFTSoldEventFilter;
+
+    "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)"(
+      collectionId?: null,
+      nftId?: null,
+      owner?: null,
+      isForSale?: null
+    ): NFT_Toggleed_Sale_StatusEventFilter;
+    NFT_Toggleed_Sale_Status(
+      collectionId?: null,
+      nftId?: null,
+      owner?: null,
+      isForSale?: null
+    ): NFT_Toggleed_Sale_StatusEventFilter;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
@@ -1039,6 +1310,37 @@ export interface SahabaMarketplace extends BaseContract {
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;
+
+    "ServiceFeesPriceChanged(uint256,uint256)"(
+      prevPrice?: null,
+      newPrice?: null
+    ): ServiceFeesPriceChangedEventFilter;
+    ServiceFeesPriceChanged(
+      prevPrice?: null,
+      newPrice?: null
+    ): ServiceFeesPriceChangedEventFilter;
+
+    "SetNewNftPrice(uint256,address,uint256)"(
+      nftId?: null,
+      owner?: null,
+      price?: null
+    ): SetNewNftPriceEventFilter;
+    SetNewNftPrice(
+      nftId?: null,
+      owner?: null,
+      price?: null
+    ): SetNewNftPriceEventFilter;
+
+    "SetNftPlatformFee(uint256,address,uint256)"(
+      nftId?: null,
+      owner?: null,
+      fee?: null
+    ): SetNftPlatformFeeEventFilter;
+    SetNftPlatformFee(
+      nftId?: null,
+      owner?: null,
+      fee?: null
+    ): SetNftPlatformFeeEventFilter;
 
     "Transfer(address,address,uint256)"(
       from?: PromiseOrValue<string> | null,
@@ -1050,12 +1352,43 @@ export interface SahabaMarketplace extends BaseContract {
       to?: PromiseOrValue<string> | null,
       tokenId?: PromiseOrValue<BigNumberish> | null
     ): TransferEventFilter;
+
+    "TransferNftOwnership(uint256,address,address)"(
+      nftId?: null,
+      currentOwner?: null,
+      newOwner?: null
+    ): TransferNftOwnershipEventFilter;
+    TransferNftOwnership(
+      nftId?: null,
+      currentOwner?: null,
+      newOwner?: null
+    ): TransferNftOwnershipEventFilter;
+
+    "TransferNftPriceToOwner(uint256,address,uint256)"(
+      nftId?: null,
+      currentOwner?: null,
+      price?: null
+    ): TransferNftPriceToOwnerEventFilter;
+    TransferNftPriceToOwner(
+      nftId?: null,
+      currentOwner?: null,
+      price?: null
+    ): TransferNftPriceToOwnerEventFilter;
+
+    "TransferPlatformFees(uint256,uint256)"(
+      nftId?: null,
+      amount?: null
+    ): TransferPlatformFeesEventFilter;
+    TransferPlatformFees(
+      nftId?: null,
+      amount?: null
+    ): TransferPlatformFeesEventFilter;
   };
 
   estimateGas: {
     addCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1099,7 +1432,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborators: PromiseOrValue<string>[],
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1147,7 +1480,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     removeCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1219,7 +1552,7 @@ export interface SahabaMarketplace extends BaseContract {
   populateTransaction: {
     addCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1265,7 +1598,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborators: PromiseOrValue<string>[],
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1315,7 +1648,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     removeCollaborators(
       _collectionId: PromiseOrValue<BigNumberish>,
-      _collaborators: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

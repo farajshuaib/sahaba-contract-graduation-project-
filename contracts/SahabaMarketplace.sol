@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >0.4.0 <0.9.0;
 
+import "./MarketEvents.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract SahabaMarketplace is ERC721URIStorage, Ownable {
+contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIds;
@@ -43,73 +44,82 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         address[] collaborators;
     }
 
-    event CollectionCreated(
-        uint256 collectionId,
-        address payable createdBy,
-        string name,
-        address[] collaborators
-    );
-
     // a way to access values of the MarketItem struct above by passing an integer ID
     mapping(uint256 => MarketItem) private idMarketItem;
 
     mapping(uint256 => Collections) private idCollection;
-
     // check if token URI exists
     mapping(string => bool) public tokenURIExists;
 
     // create collection
-    function createCollection(
-        string memory _name,
-        address[] memory _collaborators
-    ) public returns (uint256) {
+    function createCollection(string memory _name, address _collaborator)
+        public
+        returns (uint256)
+    {
         //set a new collection id for the token to be minted
         _collectionIds.increment();
         uint256 newCollectionId = _collectionIds.current();
+
+        address[] memory collaborators;
+        collaborators[0] = _collaborator;
 
         idCollection[newCollectionId] = Collections(
             newCollectionId,
             payable(msg.sender),
             _name,
-            _collaborators
+            collaborators
         );
 
         emit CollectionCreated(
             newCollectionId,
             payable(msg.sender),
             _name,
-            _collaborators
+            collaborators
         );
 
         return newCollectionId;
     }
 
     // adding collaborators to a collection
-    function addCollaborators(uint256 _collectionId, address _collaborators)
+    function addCollaborators(uint256 _collectionId, address _collaborator)
         public
     {
+        Collections storage collection = idCollection[_collectionId];
         require(
-            idCollection[_collectionId].createdBy == msg.sender,
+            collection.createdBy == msg.sender,
             "You are not the creator of this collection"
         );
 
-        idCollection[_collectionId].collaborators.push(_collaborators);
+        collection.collaborators.push(_collaborator);
+
+        idCollection[_collectionId] = collection;
+
+        emit CollaboratorAdded(_collectionId, _collaborator);
     }
 
     // remove collaborators from a collection
-    function removeCollaborators(uint256 _collectionId, address _collaborators)
+    function removeCollaborators(uint256 _collectionId, address _collaborator)
         public
     {
+        Collections storage collection = idCollection[_collectionId];
         require(
-            idCollection[_collectionId].createdBy == msg.sender,
+            collection.createdBy == msg.sender,
             "You are not the creator of this collection"
         );
 
-        for (uint256 i = 0; i < idCollection[_collectionId].collaborators.length; i++) {
-            if (idCollection[_collectionId].collaborators[i] == _collaborators) {
-                idCollection[_collectionId].collaborators.pop();
+        for (uint256 i; i < collection.collaborators.length; i++) {
+            if (collection.collaborators[i] == _collaborator) {
+                collection.collaborators[i] = collection.collaborators[
+                    collection.collaborators.length - 1
+                ];
+                collection.collaborators.pop();
+                break;
             }
         }
+
+        idCollection[_collectionId] = collection;
+
+        emit CollaboratorRemoved(_collectionId, _collaborator);
     }
 
     /// @notice function to create market item
@@ -133,8 +143,10 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         uint256 platformFees = 0;
         if (_service_fees > 0) {
             platformFees = (price * _service_fees) / 1 ether;
+            emit SetNftPlatformFee(newItemId, msg.sender, platformFees);
         }
         uint256 _price = (price - platformFees) / 1 ether;
+        emit SetNewNftPrice(newItemId, msg.sender, _price);
 
         _mint(msg.sender, newItemId); // mint the token
         _setTokenURI(newItemId, tokenURI); //generate the URI
@@ -153,6 +165,14 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         );
 
         idMarketItem[newItemId] = newItem;
+
+        emit NFTCreated(
+            newItem.collectionId,
+            newItem.tokenId,
+            newItem.mintedBy,
+            tokenURI,
+            newItem.price
+        );
 
         //return token ID
         return newItemId;
@@ -181,6 +201,13 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         }
         // set and update that token in the mapping
         idMarketItem[_tokenId] = marketItem;
+
+        emit NFT_Toggleed_Sale_Status(
+            marketItem.collectionId,
+            _tokenId,
+            tokenOwner,
+            marketItem.isForSale
+        );
     }
 
     function buyToken(uint256 tokenId) public payable {
@@ -208,12 +235,29 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
 
         // send token's worth of ethers to the owner
         marketItem.currentOwner.transfer(marketItem.price);
+        emit TransferNftPriceToOwner(
+            tokenId,
+            marketItem.currentOwner,
+            marketItem.price
+        );
+
         //pay owner of contract the service fees
         if (marketItem.platformFees > 0) {
+            // send the platform fees to the platform
             payable(owner()).transfer(marketItem.platformFees);
+            emit TransferPlatformFees(tokenId, marketItem.platformFees);
         }
         // transfer the token from owner to the caller of the function (buyer)
         _transfer(tokenOwner, msg.sender, tokenId); // _transfer(from, to, token_id)
+        emit TransferNftOwnership(tokenId, tokenOwner, msg.sender);
+
+        emit NFTSold(
+            marketItem.collectionId,
+            tokenId,
+            msg.sender,
+            tokenOwner,
+            marketItem.price
+        );
         // update the token's previous owner
         marketItem.previousOwner = marketItem.currentOwner;
         // update the token's current owner
@@ -236,8 +280,11 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         );
 
         MarketItem memory marketItem = idMarketItem[tokenId];
+
+        emit NFTPriceChanged(tokenId, marketItem.price, _newPrice, msg.sender);
         // update token's price with new price
         marketItem.price = _newPrice;
+
         // set and update that token in the mapping
         idMarketItem[tokenId] = marketItem;
     }
@@ -251,6 +298,8 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
             msg.sender == owner(),
             "you don't have access to modify the platform service fees"
         );
+        emit ServiceFeesPriceChanged(_service_fees, price);
+
         _service_fees = price;
     }
 
@@ -296,5 +345,7 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable {
         );
 
         _burn(tokenId);
+
+        emit NFTDeleted(tokenId, msg.sender);
     }
 }

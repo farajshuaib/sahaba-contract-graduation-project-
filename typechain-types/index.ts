@@ -22,5 +22,7 @@ export type { ERC165 } from "./@openzeppelin/contracts/utils/introspection/ERC16
 export { ERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/ERC165__factory";
 export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC165";
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
+export type { MarketEvents } from "./contracts/MarketEvents";
+export { MarketEvents__factory } from "./factories/contracts/MarketEvents__factory";
 export type { SahabaMarketplace } from "./contracts/SahabaMarketplace";
 export { SahabaMarketplace__factory } from "./factories/contracts/SahabaMarketplace__factory";
