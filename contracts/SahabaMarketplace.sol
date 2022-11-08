@@ -52,29 +52,26 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
     mapping(string => bool) public tokenURIExists;
 
     // create collection
-    function createCollection(string memory _name, address _collaborator)
-        public
-        returns (uint256)
-    {
+    function createCollection(
+        string memory _name,
+        address[] memory _collaborator
+    ) public returns (uint256) {
         //set a new collection id for the token to be minted
         _collectionIds.increment();
         uint256 newCollectionId = _collectionIds.current();
-
-        address[] memory collaborators;
-        collaborators[0] = _collaborator;
 
         idCollection[newCollectionId] = Collections(
             newCollectionId,
             payable(msg.sender),
             _name,
-            collaborators
+            _collaborator
         );
 
         emit CollectionCreated(
             newCollectionId,
             payable(msg.sender),
             _name,
-            collaborators
+            _collaborator
         );
 
         return newCollectionId;

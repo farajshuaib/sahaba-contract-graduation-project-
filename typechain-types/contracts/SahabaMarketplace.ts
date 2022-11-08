@@ -94,7 +94,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "collectionName()": FunctionFragment;
     "collectionNameSymbol()": FunctionFragment;
     "createAndListToken(string,uint256,uint256)": FunctionFragment;
-    "createCollection(string,address)": FunctionFragment;
+    "createCollection(string,address[])": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getCollection(uint256)": FunctionFragment;
     "getCollectionCollaborators(uint256)": FunctionFragment;
@@ -199,7 +199,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createCollection",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+    values: [PromiseOrValue<string>, PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -745,7 +745,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborator: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -908,7 +908,7 @@ export interface SahabaMarketplace extends BaseContract {
 
   createCollection(
     _name: PromiseOrValue<string>,
-    _collaborator: PromiseOrValue<string>,
+    _collaborator: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1071,7 +1071,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborator: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1432,7 +1432,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborator: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1598,7 +1598,7 @@ export interface SahabaMarketplace extends BaseContract {
 
     createCollection(
       _name: PromiseOrValue<string>,
-      _collaborator: PromiseOrValue<string>,
+      _collaborator: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
