@@ -6,8 +6,21 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
+contract SahabaMarketplace is
+    ERC721URIStorage,
+    Ownable,
+    MarketEvents,
+    ReentrancyGuard
+{
+    using SafeERC20 for IERC20;
+    using SafeMath for uint256;
+    using Address for address payable;
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIds;
@@ -51,11 +64,123 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
     // check if token URI exists
     mapping(string => bool) public tokenURIExists;
 
+    // check if collection name exists
+    mapping(string => bool) public collectionNameExists;
+
+    modifier itemOwnerSchema(uint256 tokenId) {
+        // require caller of the function is not an empty address
+        require(msg.sender != address(0), "address is missing");
+        // get the token's owner
+        bool tokenExists = _exists(tokenId);
+        require(tokenExists, "token does not exist");
+
+        address tokenOwner = ownerOf(tokenId);
+        // check that token's owner should be equal to the caller of the function
+        require(
+            tokenOwner == msg.sender,
+            "you're not allowed to maintain this token"
+        );
+
+        _;
+    }
+
+    modifier createAndListTokenSchema(uint256 price, string memory tokenURI) {
+        // check if thic fucntion caller is not an zero address account
+        require(msg.sender != address(0), "address not found !!");
+        // check if the token URI already exists or not
+        require(!tokenURIExists[tokenURI], "tokenURI is already minted");
+        // check if the token URI already exists or not
+        require(price > 0, "Price must be above zero");
+
+        _;
+    }
+
+    modifier shoubBeCollaborator(uint256 _collectionId) {
+        require(_collectionId > 0, "Collection ID must be above zero");
+
+        Collections storage collection = idCollection[_collectionId];
+
+        address[] memory collaborators = collection.collaborators;
+
+        bool isCollaborator = false;
+
+        for (uint256 i = 0; i < collaborators.length; i++) {
+            if (collaborators[i] == msg.sender) {
+                isCollaborator = true;
+            }
+        }
+
+        require(
+            isCollaborator || collection.createdBy == msg.sender,
+            "You're not allowed to mint NFTs for this collection"
+        );
+
+        _;
+    }
+
+    modifier buyTokenSchema(uint256 tokenId) {
+        // check if the function caller is not an zero account address
+        require(msg.sender != address(0), "address not found");
+        // check if the token exists or not
+        bool tokenExists = _exists(tokenId);
+        require(tokenExists, "token does not exist");
+        // get the token's owner
+        address tokenOwner = ownerOf(tokenId);
+        // token's owner should not be an zero address account
+        require(tokenOwner != address(0), "token owner address is missed !!");
+        // the one who wants to buy the token should not be the token's owner
+        require(
+            tokenOwner != msg.sender,
+            "the one who wants to buy the token should not be the token's owner"
+        );
+        // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
+        MarketItem memory marketItem = idMarketItem[tokenId];
+        // price sent in to buy should be equal to or more than the token's price
+        require(
+            msg.value >= marketItem.price,
+            "you're not sending enough money to buy this NFT"
+        );
+
+        // token should be for sale
+        require(marketItem.isForSale, "sorry this NFT is not for salse");
+        _;
+    }
+
+    function calcItemPrice(
+        uint256 tokenId,
+        uint256 price,
+        uint256 platformFees
+    ) private itemOwnerSchema(tokenId) returns (uint256) {
+        require(price > 0, "Price must be above zero");
+        // calc the platform fees
+        uint256 _price = (price - platformFees) / 1 ether;
+        emit SetNftPrice(tokenId, msg.sender, _price);
+        return _price;
+    }
+
+    function calcItemPlatformFee(uint256 tokenId, uint256 price)
+        private
+        itemOwnerSchema(tokenId)
+        returns (uint256)
+    {
+        require(price > 0, "Price must be above zero");
+        uint256 platformFees = 0;
+        if (_service_fees > 0) {
+            platformFees = (price * _service_fees) / 1 ether;
+            emit SetNftPlatformFee(tokenId, msg.sender, platformFees);
+        }
+        return platformFees;
+    }
+
     // create collection
     function createCollection(
         string memory _name,
         address[] memory _collaborator
     ) public returns (uint256) {
+        require(
+            !collectionNameExists[_name],
+            "Collection name already exists, please choose another name"
+        );
         //set a new collection id for the token to be minted
         _collectionIds.increment();
         uint256 newCollectionId = _collectionIds.current();
@@ -80,12 +205,9 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
     // adding collaborators to a collection
     function addCollaborators(uint256 _collectionId, address _collaborator)
         public
+        shoubBeCollaborator(_collectionId)
     {
         Collections storage collection = idCollection[_collectionId];
-        require(
-            collection.createdBy == msg.sender,
-            "You are not the creator of this collection"
-        );
 
         collection.collaborators.push(_collaborator);
 
@@ -124,30 +246,22 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
         string memory tokenURI,
         uint256 price,
         uint256 _collectionId
-    ) public payable returns (uint256) {
-        // check if thic fucntion caller is not an zero address account
-        require(msg.sender != address(0), "address not found !!");
-        // check if the token URI already exists or not
-        require(!tokenURIExists[tokenURI], "tokenURI is already minted");
-        // check if the token URI already exists or not
-        require(price > 0, "Price must be above zero");
-
+    )
+        public
+        payable
+        createAndListTokenSchema(price, tokenURI)
+        shoubBeCollaborator(_collectionId)
+        returns (uint256)
+    {
         //set a new token id for the token to be minted
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
 
-        // calc the platform fees
-        uint256 platformFees = 0;
-        if (_service_fees > 0) {
-            platformFees = (price * _service_fees) / 1 ether;
-            emit SetNftPlatformFee(newItemId, msg.sender, platformFees);
-        }
-        uint256 _price = (price - platformFees) / 1 ether;
-        emit SetNewNftPrice(newItemId, msg.sender, _price);
-
         _mint(msg.sender, newItemId); // mint the token
         _setTokenURI(newItemId, tokenURI); //generate the URI
         setApprovalForAll(address(this), true); //grant transaction permission to marketplace
+        uint256 platformFees = calcItemPlatformFee(newItemId, price);
+        uint256 _price = calcItemPrice(newItemId, price, platformFees);
 
         MarketItem memory newItem = MarketItem(
             newItemId,
@@ -163,31 +277,13 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
 
         idMarketItem[newItemId] = newItem;
 
-        emit NFTCreated(
-            newItem.collectionId,
-            newItem.tokenId,
-            newItem.mintedBy,
-            tokenURI,
-            newItem.price
-        );
-
         //return token ID
         return newItemId;
     }
 
     // switch between set for sale and set not for sale
-    function toggleForSale(uint256 _tokenId) public {
-        // require caller of the function is not an empty address
-        require(msg.sender != address(0), "address not found !!");
-        // require that token should exist
-        require(_exists(_tokenId), "You are not the creator of this token");
-        // get the token's owner
+    function toggleForSale(uint256 _tokenId) public itemOwnerSchema(_tokenId) {
         address tokenOwner = ownerOf(_tokenId);
-        // check that token's owner should be equal to the caller of the function
-        require(
-            tokenOwner == msg.sender,
-            "you don't own this NFT you can't modify it"
-        );
         // get that token from idMarketItem mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[_tokenId];
         // if token's forSale is false make it true and vice versa
@@ -207,54 +303,60 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
         );
     }
 
-    function buyToken(uint256 tokenId) public payable {
-        // check if the function caller is not an zero account address
-        require(msg.sender != address(0), "address not found");
-        // get the token's owner
+    function buyToken(uint256 tokenId) public payable buyTokenSchema(tokenId) {
+        _buyToken(tokenId, address(0));
+    }
+
+    // buy token
+    function buyTokenWithERC20(uint256 tokenId, address _payToken)
+        public
+        payable
+        buyTokenSchema(tokenId)
+    {
+        _buyToken(tokenId, _payToken);
+    }
+
+    function _buyToken(uint256 tokenId, address _payToken) internal {
         address tokenOwner = ownerOf(tokenId);
-        // token's owner should not be an zero address account
-        require(tokenOwner != address(0), "token owner address is missed !!");
-        // the one who wants to buy the token should not be the token's owner
-        require(
-            tokenOwner != msg.sender,
-            "the one who wants to buy the token should not be the token's owner"
-        );
         // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[tokenId];
-        // price sent in to buy should be equal to or more than the token's price
-        require(
-            msg.value >= marketItem.price,
-            "you're not sending enough money to buy this NFT"
-        );
-
-        // token should be for sale
-        require(marketItem.isForSale, "sorry this NFT is not for salse");
 
         // send token's worth of ethers to the owner
-        marketItem.currentOwner.transfer(marketItem.price);
+        if (_payToken == address(0)) {
+            marketItem.currentOwner.transfer(marketItem.price);
+            //pay owner of contract the service fees
+            if (marketItem.platformFees > 0) {
+                // send the platform fees to the platform
+                payable(owner()).transfer(marketItem.platformFees);
+                emit TransferPlatformFees(tokenId, marketItem.platformFees);
+            }
+        } else {
+            IERC20(_payToken).transferFrom(
+                _msgSender(),
+                marketItem.currentOwner,
+                marketItem.price
+            );
+            //pay owner of contract the service fees
+            if (marketItem.platformFees > 0) {
+                // send the platform fees to the platform in other currency
+                IERC20(_payToken).transferFrom(
+                    _msgSender(),
+                    owner(),
+                    marketItem.platformFees
+                );
+                emit TransferPlatformFees(tokenId, marketItem.platformFees);
+            }
+        }
+
         emit TransferNftPriceToOwner(
             tokenId,
             marketItem.currentOwner,
             marketItem.price
         );
 
-        //pay owner of contract the service fees
-        if (marketItem.platformFees > 0) {
-            // send the platform fees to the platform
-            payable(owner()).transfer(marketItem.platformFees);
-            emit TransferPlatformFees(tokenId, marketItem.platformFees);
-        }
         // transfer the token from owner to the caller of the function (buyer)
         _transfer(tokenOwner, msg.sender, tokenId); // _transfer(from, to, token_id)
         emit TransferNftOwnership(tokenId, tokenOwner, msg.sender);
-
-        emit NFTSold(
-            marketItem.collectionId,
-            tokenId,
-            msg.sender,
-            tokenOwner,
-            marketItem.price
-        );
         // update the token's previous owner
         marketItem.previousOwner = marketItem.currentOwner;
         // update the token's current owner
@@ -263,24 +365,36 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
         marketItem.numberOfTransfers += 1;
         // set and update that token in the mapping
         idMarketItem[tokenId] = marketItem;
+
+        emit NFTSold(
+            marketItem.collectionId,
+            tokenId,
+            msg.sender,
+            tokenOwner,
+            marketItem.price
+        );
     }
 
-    function changeTokenPrice(uint256 tokenId, uint256 _newPrice) public {
-        // require caller of the function is not an empty address
-        require(msg.sender != address(0), "address is missing");
-        // get the token's owner
-        address tokenOwner = ownerOf(tokenId);
-        // check that token's owner should be equal to the caller of the function
-        require(
-            tokenOwner == msg.sender,
-            "you're not allowed to maintain this token"
-        );
-
+    function changeTokenPrice(uint256 tokenId, uint256 _newPrice)
+        public
+        itemOwnerSchema(tokenId)
+    {
         MarketItem memory marketItem = idMarketItem[tokenId];
 
-        emit NFTPriceChanged(tokenId, marketItem.price, _newPrice, msg.sender);
+        uint256 platformFees = calcItemPlatformFee(
+            marketItem.tokenId,
+            _newPrice
+        );
+        uint256 _price = calcItemPrice(
+            marketItem.tokenId,
+            _newPrice,
+            platformFees
+        );
+
+        emit NFTPriceChanged(tokenId, marketItem.price, _price, msg.sender);
         // update token's price with new price
-        marketItem.price = _newPrice;
+        marketItem.platformFees = platformFees;
+        marketItem.price = _price;
 
         // set and update that token in the mapping
         idMarketItem[tokenId] = marketItem;
@@ -291,12 +405,7 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
     }
 
     function setServiceFeesPrice(uint256 price) public onlyOwner {
-        require(
-            msg.sender == owner(),
-            "you don't have access to modify the platform service fees"
-        );
         emit ServiceFeesPriceChanged(_service_fees, price);
-
         _service_fees = price;
     }
 
@@ -330,17 +439,7 @@ contract SahabaMarketplace is ERC721URIStorage, Ownable, MarketEvents {
         return idCollection[_collectionId].collaborators;
     }
 
-    function burn(uint256 tokenId) public {
-        bool tokenExists = _exists(tokenId);
-        require(tokenExists, "token does not exist");
-
-        address tokenOwner = ownerOf(tokenId);
-
-        require(
-            tokenOwner == msg.sender,
-            "you're not allowed to maintain this token"
-        );
-
+    function burn(uint256 tokenId) public itemOwnerSchema(tokenId) {
         _burn(tokenId);
 
         emit NFTDeleted(tokenId, msg.sender);

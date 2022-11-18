@@ -25,8 +25,8 @@ export interface MarketEventsInterface extends utils.Interface {
     "NFTSold(uint256,uint256,address,address,uint256)": EventFragment;
     "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)": EventFragment;
     "ServiceFeesPriceChanged(uint256,uint256)": EventFragment;
-    "SetNewNftPrice(uint256,address,uint256)": EventFragment;
     "SetNftPlatformFee(uint256,address,uint256)": EventFragment;
+    "SetNftPrice(uint256,address,uint256)": EventFragment;
     "TransferNftOwnership(uint256,address,address)": EventFragment;
     "TransferNftPriceToOwner(uint256,address,uint256)": EventFragment;
     "TransferPlatformFees(uint256,uint256)": EventFragment;
@@ -41,8 +41,8 @@ export interface MarketEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "NFTSold"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NFT_Toggleed_Sale_Status"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ServiceFeesPriceChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetNewNftPrice"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetNftPlatformFee"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetNftPrice"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferNftOwnership"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferNftPriceToOwner"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferPlatformFees"): EventFragment;
@@ -164,18 +164,6 @@ export type ServiceFeesPriceChangedEvent = TypedEvent<
 export type ServiceFeesPriceChangedEventFilter =
   TypedEventFilter<ServiceFeesPriceChangedEvent>;
 
-export interface SetNewNftPriceEventObject {
-  nftId: BigNumber;
-  owner: string;
-  price: BigNumber;
-}
-export type SetNewNftPriceEvent = TypedEvent<
-  [BigNumber, string, BigNumber],
-  SetNewNftPriceEventObject
->;
-
-export type SetNewNftPriceEventFilter = TypedEventFilter<SetNewNftPriceEvent>;
-
 export interface SetNftPlatformFeeEventObject {
   nftId: BigNumber;
   owner: string;
@@ -188,6 +176,18 @@ export type SetNftPlatformFeeEvent = TypedEvent<
 
 export type SetNftPlatformFeeEventFilter =
   TypedEventFilter<SetNftPlatformFeeEvent>;
+
+export interface SetNftPriceEventObject {
+  nftId: BigNumber;
+  owner: string;
+  price: BigNumber;
+}
+export type SetNftPriceEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  SetNftPriceEventObject
+>;
+
+export type SetNftPriceEventFilter = TypedEventFilter<SetNftPriceEvent>;
 
 export interface TransferNftOwnershipEventObject {
   nftId: BigNumber;
@@ -360,17 +360,6 @@ export interface MarketEvents extends BaseContract {
       newPrice?: null
     ): ServiceFeesPriceChangedEventFilter;
 
-    "SetNewNftPrice(uint256,address,uint256)"(
-      nftId?: null,
-      owner?: null,
-      price?: null
-    ): SetNewNftPriceEventFilter;
-    SetNewNftPrice(
-      nftId?: null,
-      owner?: null,
-      price?: null
-    ): SetNewNftPriceEventFilter;
-
     "SetNftPlatformFee(uint256,address,uint256)"(
       nftId?: null,
       owner?: null,
@@ -381,6 +370,17 @@ export interface MarketEvents extends BaseContract {
       owner?: null,
       fee?: null
     ): SetNftPlatformFeeEventFilter;
+
+    "SetNftPrice(uint256,address,uint256)"(
+      nftId?: null,
+      owner?: null,
+      price?: null
+    ): SetNftPriceEventFilter;
+    SetNftPrice(
+      nftId?: null,
+      owner?: null,
+      price?: null
+    ): SetNftPriceEventFilter;
 
     "TransferNftOwnership(uint256,address,address)"(
       nftId?: null,

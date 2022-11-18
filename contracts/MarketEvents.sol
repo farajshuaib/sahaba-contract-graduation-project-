@@ -63,6 +63,6 @@ contract MarketEvents {
 
     event SetNftPlatformFee(uint256 nftId, address owner, uint256 fee);
 
-    event SetNewNftPrice(uint256 nftId, address owner, uint256 price);
+    event SetNftPrice(uint256 nftId, address owner, uint256 price);
 
 }

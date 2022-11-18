@@ -271,11 +271,11 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "price",
+        name: "fee",
         type: "uint256",
       },
     ],
-    name: "SetNewNftPrice",
+    name: "SetNftPlatformFee",
     type: "event",
   },
   {
@@ -296,11 +296,11 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "fee",
+        name: "price",
         type: "uint256",
       },
     ],
-    name: "SetNftPlatformFee",
+    name: "SetNftPrice",
     type: "event",
   },
   {
@@ -375,7 +375,7 @@ const _abi = [
 ];
 
 const _bytecode =
-  "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212201f929a1e7f7ef346906ddc8ed5d1ebf8d037c325424c0c1fa4782ddb5a2a0d2b64736f6c63430008090033";
+  "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220d142ce98181c8876065e9bba361c4eb8bdb5b734edc5cfa221e7224e718a854364736f6c63430008090033";
 
 type MarketEventsConstructorParams =
   | [signer?: Signer]

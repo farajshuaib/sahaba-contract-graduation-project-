@@ -90,8 +90,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
     "buyToken(uint256)": FunctionFragment;
+    "buyTokenWithERC20(uint256,address)": FunctionFragment;
     "changeTokenPrice(uint256,uint256)": FunctionFragment;
     "collectionName()": FunctionFragment;
+    "collectionNameExists(string)": FunctionFragment;
     "collectionNameSymbol()": FunctionFragment;
     "createAndListToken(string,uint256,uint256)": FunctionFragment;
     "createCollection(string,address[])": FunctionFragment;
@@ -127,8 +129,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
       | "balanceOf"
       | "burn"
       | "buyToken"
+      | "buyTokenWithERC20"
       | "changeTokenPrice"
       | "collectionName"
+      | "collectionNameExists"
       | "collectionNameSymbol"
       | "createAndListToken"
       | "createCollection"
@@ -178,12 +182,20 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
+    functionFragment: "buyTokenWithERC20",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "changeTokenPrice",
     values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "collectionName",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "collectionNameExists",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "collectionNameSymbol",
@@ -307,11 +319,19 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "buyToken", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "buyTokenWithERC20",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "changeTokenPrice",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "collectionName",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "collectionNameExists",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -417,8 +437,8 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "ServiceFeesPriceChanged(uint256,uint256)": EventFragment;
-    "SetNewNftPrice(uint256,address,uint256)": EventFragment;
     "SetNftPlatformFee(uint256,address,uint256)": EventFragment;
+    "SetNftPrice(uint256,address,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
     "TransferNftOwnership(uint256,address,address)": EventFragment;
     "TransferNftPriceToOwner(uint256,address,uint256)": EventFragment;
@@ -437,8 +457,8 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "NFT_Toggleed_Sale_Status"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ServiceFeesPriceChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetNewNftPrice"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SetNftPlatformFee"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetNftPrice"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferNftOwnership"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferNftPriceToOwner"): EventFragment;
@@ -597,18 +617,6 @@ export type ServiceFeesPriceChangedEvent = TypedEvent<
 export type ServiceFeesPriceChangedEventFilter =
   TypedEventFilter<ServiceFeesPriceChangedEvent>;
 
-export interface SetNewNftPriceEventObject {
-  nftId: BigNumber;
-  owner: string;
-  price: BigNumber;
-}
-export type SetNewNftPriceEvent = TypedEvent<
-  [BigNumber, string, BigNumber],
-  SetNewNftPriceEventObject
->;
-
-export type SetNewNftPriceEventFilter = TypedEventFilter<SetNewNftPriceEvent>;
-
 export interface SetNftPlatformFeeEventObject {
   nftId: BigNumber;
   owner: string;
@@ -621,6 +629,18 @@ export type SetNftPlatformFeeEvent = TypedEvent<
 
 export type SetNftPlatformFeeEventFilter =
   TypedEventFilter<SetNftPlatformFeeEvent>;
+
+export interface SetNftPriceEventObject {
+  nftId: BigNumber;
+  owner: string;
+  price: BigNumber;
+}
+export type SetNftPriceEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  SetNftPriceEventObject
+>;
+
+export type SetNftPriceEventFilter = TypedEventFilter<SetNftPriceEvent>;
 
 export interface TransferEventObject {
   from: string;
@@ -726,6 +746,12 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    buyTokenWithERC20(
+      tokenId: PromiseOrValue<BigNumberish>,
+      _payToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
@@ -733,6 +759,11 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<ContractTransaction>;
 
     collectionName(overrides?: CallOverrides): Promise<[string]>;
+
+    collectionNameExists(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     collectionNameSymbol(overrides?: CallOverrides): Promise<[string]>;
 
@@ -889,6 +920,12 @@ export interface SahabaMarketplace extends BaseContract {
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  buyTokenWithERC20(
+    tokenId: PromiseOrValue<BigNumberish>,
+    _payToken: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   changeTokenPrice(
     tokenId: PromiseOrValue<BigNumberish>,
     _newPrice: PromiseOrValue<BigNumberish>,
@@ -896,6 +933,11 @@ export interface SahabaMarketplace extends BaseContract {
   ): Promise<ContractTransaction>;
 
   collectionName(overrides?: CallOverrides): Promise<string>;
+
+  collectionNameExists(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   collectionNameSymbol(overrides?: CallOverrides): Promise<string>;
 
@@ -1052,6 +1094,12 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    buyTokenWithERC20(
+      tokenId: PromiseOrValue<BigNumberish>,
+      _payToken: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
@@ -1059,6 +1107,11 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<void>;
 
     collectionName(overrides?: CallOverrides): Promise<string>;
+
+    collectionNameExists(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     collectionNameSymbol(overrides?: CallOverrides): Promise<string>;
 
@@ -1320,17 +1373,6 @@ export interface SahabaMarketplace extends BaseContract {
       newPrice?: null
     ): ServiceFeesPriceChangedEventFilter;
 
-    "SetNewNftPrice(uint256,address,uint256)"(
-      nftId?: null,
-      owner?: null,
-      price?: null
-    ): SetNewNftPriceEventFilter;
-    SetNewNftPrice(
-      nftId?: null,
-      owner?: null,
-      price?: null
-    ): SetNewNftPriceEventFilter;
-
     "SetNftPlatformFee(uint256,address,uint256)"(
       nftId?: null,
       owner?: null,
@@ -1341,6 +1383,17 @@ export interface SahabaMarketplace extends BaseContract {
       owner?: null,
       fee?: null
     ): SetNftPlatformFeeEventFilter;
+
+    "SetNftPrice(uint256,address,uint256)"(
+      nftId?: null,
+      owner?: null,
+      price?: null
+    ): SetNftPriceEventFilter;
+    SetNftPrice(
+      nftId?: null,
+      owner?: null,
+      price?: null
+    ): SetNftPriceEventFilter;
 
     "Transfer(address,address,uint256)"(
       from?: PromiseOrValue<string> | null,
@@ -1413,6 +1466,12 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    buyTokenWithERC20(
+      tokenId: PromiseOrValue<BigNumberish>,
+      _payToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
@@ -1420,6 +1479,11 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<BigNumber>;
 
     collectionName(overrides?: CallOverrides): Promise<BigNumber>;
+
+    collectionNameExists(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     collectionNameSymbol(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1577,6 +1641,12 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    buyTokenWithERC20(
+      tokenId: PromiseOrValue<BigNumberish>,
+      _payToken: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
       _newPrice: PromiseOrValue<BigNumberish>,
@@ -1584,6 +1654,11 @@ export interface SahabaMarketplace extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     collectionName(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    collectionNameExists(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     collectionNameSymbol(
       overrides?: CallOverrides
