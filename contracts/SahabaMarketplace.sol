@@ -40,9 +40,9 @@ contract SahabaMarketplace is
 
     struct MarketItem {
         uint256 tokenId;
-        address payable mintedBy;
-        address payable currentOwner;
-        address payable previousOwner;
+        address mintedBy;
+        address currentOwner;
+        address previousOwner;
         uint256 price;
         uint256 platformFees;
         uint256 collectionId;
@@ -52,7 +52,7 @@ contract SahabaMarketplace is
 
     struct Collections {
         uint256 tokenId;
-        address payable createdBy;
+        address createdBy;
         string name;
         address[] collaborators;
     }
@@ -316,31 +316,38 @@ contract SahabaMarketplace is
         _buyToken(tokenId, _payToken);
     }
 
-    function _buyToken(uint256 tokenId, address _payToken) internal {
+    function _buyToken(uint256 tokenId, address _payToken) private {
         address tokenOwner = ownerOf(tokenId);
         // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[tokenId];
 
         // send token's worth of ethers to the owner
         if (_payToken == address(0)) {
-            marketItem.currentOwner.transfer(marketItem.price);
+            // marketItem.currentOwner.transfer(marketItem.price);
+            (bool ownerTransferSuccess, ) = marketItem.currentOwner.call{
+                value: marketItem.price
+            }("");
+            require(ownerTransferSuccess, "NFT owner transfer failed");
             //pay owner of contract the service fees
             if (marketItem.platformFees > 0) {
                 // send the platform fees to the platform
-                payable(owner()).transfer(marketItem.platformFees);
+                (bool platformTransferSuccess, ) = owner().call{
+                    value: marketItem.platformFees
+                }("");
+                require(platformTransferSuccess, "platform fee transfer failed");
                 emit TransferPlatformFees(tokenId, marketItem.platformFees);
             }
         } else {
-            IERC20(_payToken).transferFrom(
-                _msgSender(),
+            IERC20(_payToken).safeTransferFrom(
+                msg.sender,
                 marketItem.currentOwner,
                 marketItem.price
             );
             //pay owner of contract the service fees
             if (marketItem.platformFees > 0) {
                 // send the platform fees to the platform in other currency
-                IERC20(_payToken).transferFrom(
-                    _msgSender(),
+                IERC20(_payToken).safeTransferFrom(
+                    msg.sender,
                     owner(),
                     marketItem.platformFees
                 );
