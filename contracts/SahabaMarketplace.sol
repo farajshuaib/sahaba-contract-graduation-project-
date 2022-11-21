@@ -29,7 +29,7 @@ contract SahabaMarketplace is
     // this contract's token symbol
     string public collectionNameSymbol;
     //people have to pay to puy their NFT on this marketplace
-    uint256 private _service_fees =  25000000000000000; // 0.025 ether; // since 1 Ether is 10**18 Wei. 0.025 Ether is 0.025 * 10**18 Wei
+    uint256 private _service_fees = 25000000000000000; // 0.025 ether; // since 1 Ether is 10**18 Wei. 0.025 Ether is 0.025 * 10**18 Wei
 
     constructor() ERC721("Sahaba_NFT_Marketplace", "SAHABA") {
         collectionName = name();
@@ -224,11 +224,7 @@ contract SahabaMarketplace is
         return _price;
     }
 
-    function calcItemPlatformFee(uint256 price)
-        public
-        view
-        returns (uint256)
-    {
+    function calcItemPlatformFee(uint256 price) public view returns (uint256) {
         require(price > 0, "Price must be above zero");
         uint256 feeAmount = price.mul(_service_fees).div(1e18);
         return feeAmount;

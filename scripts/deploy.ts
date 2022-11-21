@@ -6,13 +6,12 @@
 import { ethers, run } from "hardhat";
 
 async function main() {
-  await run('clean');
-  await run('compile');
+  await run("clean");
+  await run("compile");
   // We get the contract to deploy
   const Marketplace = await ethers.getContractFactory("SahabaMarketplace");
   const nftMarket = await Marketplace.deploy();
 
-  
   await nftMarket.deployed();
 
   console.log("NFTMarket deployed to:", `${nftMarket.address}`);
