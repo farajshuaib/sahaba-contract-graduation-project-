@@ -17,7 +17,8 @@ contract MarketEvents {
         uint256 price
     );
 
-    event TransferPlatformFees(uint256 nftId, uint256 amount);
+    event TransferPlatformFees(uint256 nftId, address platform_owner, uint256 amount);
+    event TransferSellerFees(uint256 nftId, address seller, uint256 amount);
 
     event NFTDeleted(uint256 nftId, address deletedBy);
 
@@ -28,7 +29,8 @@ contract MarketEvents {
         uint256 nftId,
         address buyer,
         address seller,
-        uint256 price
+        uint256 sellerAmount,
+        uint256 feeAmount
     );
 
     event CollaboratorAdded(uint256 collectionId, address collaborator);

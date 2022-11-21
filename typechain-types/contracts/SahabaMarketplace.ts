@@ -29,6 +29,37 @@ import type {
 } from "../common";
 
 export declare namespace SahabaMarketplace {
+  export type MarketItemStruct = {
+    tokenId: PromiseOrValue<BigNumberish>;
+    mintedBy: PromiseOrValue<string>;
+    currentOwner: PromiseOrValue<string>;
+    previousOwner: PromiseOrValue<string>;
+    price: PromiseOrValue<BigNumberish>;
+    collectionId: PromiseOrValue<BigNumberish>;
+    numberOfTransfers: PromiseOrValue<BigNumberish>;
+    isForSale: PromiseOrValue<boolean>;
+  };
+
+  export type MarketItemStructOutput = [
+    BigNumber,
+    string,
+    string,
+    string,
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    boolean
+  ] & {
+    tokenId: BigNumber;
+    mintedBy: string;
+    currentOwner: string;
+    previousOwner: string;
+    price: BigNumber;
+    collectionId: BigNumber;
+    numberOfTransfers: BigNumber;
+    isForSale: boolean;
+  };
+
   export type CollectionsStruct = {
     tokenId: PromiseOrValue<BigNumberish>;
     createdBy: PromiseOrValue<string>;
@@ -47,40 +78,6 @@ export declare namespace SahabaMarketplace {
     name: string;
     collaborators: string[];
   };
-
-  export type MarketItemStruct = {
-    tokenId: PromiseOrValue<BigNumberish>;
-    mintedBy: PromiseOrValue<string>;
-    currentOwner: PromiseOrValue<string>;
-    previousOwner: PromiseOrValue<string>;
-    price: PromiseOrValue<BigNumberish>;
-    platformFees: PromiseOrValue<BigNumberish>;
-    collectionId: PromiseOrValue<BigNumberish>;
-    numberOfTransfers: PromiseOrValue<BigNumberish>;
-    isForSale: PromiseOrValue<boolean>;
-  };
-
-  export type MarketItemStructOutput = [
-    BigNumber,
-    string,
-    string,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    boolean
-  ] & {
-    tokenId: BigNumber;
-    mintedBy: string;
-    currentOwner: string;
-    previousOwner: string;
-    price: BigNumber;
-    platformFees: BigNumber;
-    collectionId: BigNumber;
-    numberOfTransfers: BigNumber;
-    isForSale: boolean;
-  };
 }
 
 export interface SahabaMarketplaceInterface extends utils.Interface {
@@ -90,19 +87,22 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "burn(uint256)": FunctionFragment;
     "buyToken(uint256)": FunctionFragment;
-    "buyTokenWithERC20(uint256,address)": FunctionFragment;
+    "calcItemPlatformFee(uint256)": FunctionFragment;
+    "calcItemPrice(uint256,uint256)": FunctionFragment;
     "changeTokenPrice(uint256,uint256)": FunctionFragment;
     "collectionName()": FunctionFragment;
     "collectionNameExists(string)": FunctionFragment;
     "collectionNameSymbol()": FunctionFragment;
     "createAndListToken(string,uint256,uint256)": FunctionFragment;
     "createCollection(string,address[])": FunctionFragment;
+    "fetchMyNFTs()": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "getCollection(uint256)": FunctionFragment;
     "getCollectionCollaborators(uint256)": FunctionFragment;
     "getMarketItem(uint256)": FunctionFragment;
     "getServiceFeesPrice()": FunctionFragment;
     "getTokenExists(uint256)": FunctionFragment;
+    "getTotalNumberOfTokensOwnedByAnAddress(address)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "name()": FunctionFragment;
     "owner()": FunctionFragment;
@@ -129,19 +129,22 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
       | "balanceOf"
       | "burn"
       | "buyToken"
-      | "buyTokenWithERC20"
+      | "calcItemPlatformFee"
+      | "calcItemPrice"
       | "changeTokenPrice"
       | "collectionName"
       | "collectionNameExists"
       | "collectionNameSymbol"
       | "createAndListToken"
       | "createCollection"
+      | "fetchMyNFTs"
       | "getApproved"
       | "getCollection"
       | "getCollectionCollaborators"
       | "getMarketItem"
       | "getServiceFeesPrice"
       | "getTokenExists"
+      | "getTotalNumberOfTokensOwnedByAnAddress"
       | "isApprovedForAll"
       | "name"
       | "owner"
@@ -182,8 +185,12 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "buyTokenWithERC20",
-    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>]
+    functionFragment: "calcItemPlatformFee",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "calcItemPrice",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "changeTokenPrice",
@@ -214,6 +221,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
+    functionFragment: "fetchMyNFTs",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getApproved",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
@@ -236,6 +247,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getTokenExists",
     values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTotalNumberOfTokensOwnedByAnAddress",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
@@ -319,7 +334,11 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "buyToken", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "buyTokenWithERC20",
+    functionFragment: "calcItemPlatformFee",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "calcItemPrice",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -347,6 +366,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "fetchMyNFTs",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
   ): Result;
@@ -368,6 +391,10 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTokenExists",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalNumberOfTokensOwnedByAnAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -433,7 +460,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "NFTCreated(uint256,uint256,address,string,uint256)": EventFragment;
     "NFTDeleted(uint256,address)": EventFragment;
     "NFTPriceChanged(uint256,uint256,uint256,address)": EventFragment;
-    "NFTSold(uint256,uint256,address,address,uint256)": EventFragment;
+    "NFTSold(uint256,uint256,address,address,uint256,uint256)": EventFragment;
     "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "ServiceFeesPriceChanged(uint256,uint256)": EventFragment;
@@ -442,7 +469,8 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
     "Transfer(address,address,uint256)": EventFragment;
     "TransferNftOwnership(uint256,address,address)": EventFragment;
     "TransferNftPriceToOwner(uint256,address,uint256)": EventFragment;
-    "TransferPlatformFees(uint256,uint256)": EventFragment;
+    "TransferPlatformFees(uint256,address,uint256)": EventFragment;
+    "TransferSellerFees(uint256,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
@@ -463,6 +491,7 @@ export interface SahabaMarketplaceInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TransferNftOwnership"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferNftPriceToOwner"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferPlatformFees"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferSellerFees"): EventFragment;
 }
 
 export interface ApprovalEventObject {
@@ -570,10 +599,11 @@ export interface NFTSoldEventObject {
   nftId: BigNumber;
   buyer: string;
   seller: string;
-  price: BigNumber;
+  sellerAmount: BigNumber;
+  feeAmount: BigNumber;
 }
 export type NFTSoldEvent = TypedEvent<
-  [BigNumber, BigNumber, string, string, BigNumber],
+  [BigNumber, BigNumber, string, string, BigNumber, BigNumber],
   NFTSoldEventObject
 >;
 
@@ -682,15 +712,29 @@ export type TransferNftPriceToOwnerEventFilter =
 
 export interface TransferPlatformFeesEventObject {
   nftId: BigNumber;
+  platform_owner: string;
   amount: BigNumber;
 }
 export type TransferPlatformFeesEvent = TypedEvent<
-  [BigNumber, BigNumber],
+  [BigNumber, string, BigNumber],
   TransferPlatformFeesEventObject
 >;
 
 export type TransferPlatformFeesEventFilter =
   TypedEventFilter<TransferPlatformFeesEvent>;
+
+export interface TransferSellerFeesEventObject {
+  nftId: BigNumber;
+  seller: string;
+  amount: BigNumber;
+}
+export type TransferSellerFeesEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  TransferSellerFeesEventObject
+>;
+
+export type TransferSellerFeesEventFilter =
+  TypedEventFilter<TransferSellerFeesEvent>;
 
 export interface SahabaMarketplace extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -746,15 +790,20 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    buyTokenWithERC20(
-      tokenId: PromiseOrValue<BigNumberish>,
-      _payToken: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    calcItemPlatformFee(
+      price: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    calcItemPrice(
+      price: PromiseOrValue<BigNumberish>,
+      feeAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
-      _newPrice: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -779,6 +828,10 @@ export interface SahabaMarketplace extends BaseContract {
       _collaborator: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    fetchMyNFTs(
+      overrides?: CallOverrides
+    ): Promise<[SahabaMarketplace.MarketItemStructOutput[]]>;
 
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -806,6 +859,11 @@ export interface SahabaMarketplace extends BaseContract {
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    getTotalNumberOfTokensOwnedByAnAddress(
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     isApprovedForAll(
       owner: PromiseOrValue<string>,
@@ -920,15 +978,20 @@ export interface SahabaMarketplace extends BaseContract {
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  buyTokenWithERC20(
-    tokenId: PromiseOrValue<BigNumberish>,
-    _payToken: PromiseOrValue<string>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  calcItemPlatformFee(
+    price: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  calcItemPrice(
+    price: PromiseOrValue<BigNumberish>,
+    feeAmount: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   changeTokenPrice(
     tokenId: PromiseOrValue<BigNumberish>,
-    _newPrice: PromiseOrValue<BigNumberish>,
+    _price: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -953,6 +1016,10 @@ export interface SahabaMarketplace extends BaseContract {
     _collaborator: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+
+  fetchMyNFTs(
+    overrides?: CallOverrides
+  ): Promise<SahabaMarketplace.MarketItemStructOutput[]>;
 
   getApproved(
     tokenId: PromiseOrValue<BigNumberish>,
@@ -980,6 +1047,11 @@ export interface SahabaMarketplace extends BaseContract {
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  getTotalNumberOfTokensOwnedByAnAddress(
+    _owner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   isApprovedForAll(
     owner: PromiseOrValue<string>,
@@ -1094,15 +1166,20 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    buyTokenWithERC20(
-      tokenId: PromiseOrValue<BigNumberish>,
-      _payToken: PromiseOrValue<string>,
+    calcItemPlatformFee(
+      price: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
+
+    calcItemPrice(
+      price: PromiseOrValue<BigNumberish>,
+      feeAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
-      _newPrice: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1127,6 +1204,10 @@ export interface SahabaMarketplace extends BaseContract {
       _collaborator: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    fetchMyNFTs(
+      overrides?: CallOverrides
+    ): Promise<SahabaMarketplace.MarketItemStructOutput[]>;
 
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
@@ -1154,6 +1235,11 @@ export interface SahabaMarketplace extends BaseContract {
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    getTotalNumberOfTokensOwnedByAnAddress(
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     isApprovedForAll(
       owner: PromiseOrValue<string>,
@@ -1327,19 +1413,21 @@ export interface SahabaMarketplace extends BaseContract {
       owner?: null
     ): NFTPriceChangedEventFilter;
 
-    "NFTSold(uint256,uint256,address,address,uint256)"(
+    "NFTSold(uint256,uint256,address,address,uint256,uint256)"(
       collectionId?: null,
       nftId?: null,
       buyer?: null,
       seller?: null,
-      price?: null
+      sellerAmount?: null,
+      feeAmount?: null
     ): NFTSoldEventFilter;
     NFTSold(
       collectionId?: null,
       nftId?: null,
       buyer?: null,
       seller?: null,
-      price?: null
+      sellerAmount?: null,
+      feeAmount?: null
     ): NFTSoldEventFilter;
 
     "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)"(
@@ -1428,14 +1516,27 @@ export interface SahabaMarketplace extends BaseContract {
       price?: null
     ): TransferNftPriceToOwnerEventFilter;
 
-    "TransferPlatformFees(uint256,uint256)"(
+    "TransferPlatformFees(uint256,address,uint256)"(
       nftId?: null,
+      platform_owner?: null,
       amount?: null
     ): TransferPlatformFeesEventFilter;
     TransferPlatformFees(
       nftId?: null,
+      platform_owner?: null,
       amount?: null
     ): TransferPlatformFeesEventFilter;
+
+    "TransferSellerFees(uint256,address,uint256)"(
+      nftId?: null,
+      seller?: null,
+      amount?: null
+    ): TransferSellerFeesEventFilter;
+    TransferSellerFees(
+      nftId?: null,
+      seller?: null,
+      amount?: null
+    ): TransferSellerFeesEventFilter;
   };
 
   estimateGas: {
@@ -1466,15 +1567,20 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    buyTokenWithERC20(
-      tokenId: PromiseOrValue<BigNumberish>,
-      _payToken: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    calcItemPlatformFee(
+      price: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    calcItemPrice(
+      price: PromiseOrValue<BigNumberish>,
+      feeAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
-      _newPrice: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1500,6 +1606,8 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
+    fetchMyNFTs(overrides?: CallOverrides): Promise<BigNumber>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1524,6 +1632,11 @@ export interface SahabaMarketplace extends BaseContract {
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalNumberOfTokensOwnedByAnAddress(
+      _owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1641,15 +1754,20 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    buyTokenWithERC20(
-      tokenId: PromiseOrValue<BigNumberish>,
-      _payToken: PromiseOrValue<string>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    calcItemPlatformFee(
+      price: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    calcItemPrice(
+      price: PromiseOrValue<BigNumberish>,
+      feeAmount: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     changeTokenPrice(
       tokenId: PromiseOrValue<BigNumberish>,
-      _newPrice: PromiseOrValue<BigNumberish>,
+      _price: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1677,6 +1795,8 @@ export interface SahabaMarketplace extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
+    fetchMyNFTs(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getApproved(
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -1703,6 +1823,11 @@ export interface SahabaMarketplace extends BaseContract {
 
     getTokenExists(
       tokenId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalNumberOfTokensOwnedByAnAddress(
+      _owner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

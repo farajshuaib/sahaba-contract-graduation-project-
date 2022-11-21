@@ -8,7 +8,7 @@ describe("sahaba NFT Marketplace contract functions", async function () {
   // general variable ...
   let market: SahabaMarketplace, tokenId: string;
 
-  const Price = parseEther("0.1");
+  const Price = parseEther("1");
 
   beforeEach(async () => {
     const Market = await ethers.getContractFactory("SahabaMarketplace");
@@ -16,120 +16,129 @@ describe("sahaba NFT Marketplace contract functions", async function () {
     await market.deployed(); //deploy the NFTMarket contract
   });
 
-  it("should get market address", () => {
-    const marketAddress = market.address;
-    assert.isNotNull(marketAddress);
+  it("should calc platform fee and NFT seller amount", async () => {
+    const calcItemPlatformFee = await market.calcItemPlatformFee(Price);
+    const fee = BigNumber.from(calcItemPlatformFee).toString();
+    console.log(fee);
+    const calcItemPrice = await market.calcItemPrice(Price, fee);
+    const sellerAmount = BigNumber.from(calcItemPrice).toString();
+    console.log(sellerAmount);
   });
 
-  it("should get market ERC721 collection name", () => {
-    const collectionName = market.collectionName();
-    assert.isNotNull(collectionName);
-  });
+  // it("should get market address", () => {
+  //   const marketAddress = market.address;
+  //   assert.isNotNull(marketAddress);
+  // });
 
-  it("should get market ERC721 collection symbol", () => {
-    const collectionNameSymbol = market.collectionNameSymbol();
-    assert.isNotNull(collectionNameSymbol);
-  });
+  // it("should get market ERC721 collection name", () => {
+  //   const collectionName = market.collectionName();
+  //   assert.isNotNull(collectionName);
+  // });
 
-  it("should get Service Fees", async function () {
-    const serviceFeesPrice = (await market.getServiceFeesPrice()).toString();
-    assert.isNotNull(serviceFeesPrice);
-  });
+  // it("should get market ERC721 collection symbol", () => {
+  //   const collectionNameSymbol = market.collectionNameSymbol();
+  //   assert.isNotNull(collectionNameSymbol);
+  // });
 
-  it("should update Service Fees", async function () {
-    const serviceFeesPrice = await market.setServiceFeesPrice(
-      parseEther("0.1")
-    );
-    assert.isNotNull(serviceFeesPrice);
-  });
+  // it("should get Service Fees", async function () {
+  //   const serviceFeesPrice = (await market.getServiceFeesPrice()).toString();
+  //   assert.isNotNull(serviceFeesPrice);
+  // });
 
-  it("should create Collection", async function () {
-    const [deployer] = await ethers.getSigners();
+  // it("should update Service Fees", async function () {
+  //   const serviceFeesPrice = await market.setServiceFeesPrice(
+  //     parseEther("0.1")
+  //   );
+  //   assert.isNotNull(serviceFeesPrice);
+  // });
 
-    const address = await deployer.getAddress();
+  // it("should create Collection", async function () {
+  //   const [deployer] = await ethers.getSigners();
 
-    const collection = await market.createCollection("collectionName", [
-      address,
-    ]);
-    assert.isNotNull(collection);
-  });
+  //   const address = await deployer.getAddress();
 
-  it("should create nft and list it", async function () {
-    const tx = await market.createAndListToken(
-      "https://laravel.com/img/logomark.min.svg",
-      parseEther(Price.toString()),
-      1
-    );
+  //   const collection = await market.createCollection("collectionName", [
+  //     address,
+  //   ]);
+  //   assert.isNotNull(collection);
+  // });
 
-    const res = await tx.wait();
+  // it("should create nft and list it", async function () {
+  //   const tx = await market.createAndListToken(
+  //     "https://laravel.com/img/logomark.min.svg",
+  //     parseEther(Price.toString()),
+  //     1
+  //   );
 
-    if (!res.events || res.events?.length === 0) {
-      assert.fail("No events emitted");
-    }
+  //   const res = await tx.wait();
 
-    tokenId = BigNumber.from(res.events[0].args?.nftId).toString();
+  //   if (!res.events || res.events?.length === 0) {
+  //     assert.fail("No events emitted");
+  //   }
 
-    console.log(tokenId);
+  //   tokenId = BigNumber.from(res.events[0].args?.nftId).toString();
 
-    assert.isNotNull(tokenId);
-  });
+  //   console.log(tokenId);
 
-  it("should get token owner", async function () {
-    const tokenOwner = await market.ownerOf(tokenId);
-    assert.isNotNull(tokenOwner);
-  });
+  //   assert.isNotNull(tokenId);
+  // });
 
-  it("should get token URI", async function () {
-    const tokenUri = await market.tokenURI(tokenId);
-    assert.isNotNull(tokenUri);
-  });
+  // it("should get token owner", async function () {
+  //   const tokenOwner = await market.ownerOf(tokenId);
+  //   assert.isNotNull(tokenOwner);
+  // });
 
-  it("should get total number of tokens owned by an address", async function () {
-    const [deployer] = await ethers.getSigners();
+  // it("should get token URI", async function () {
+  //   const tokenUri = await market.tokenURI(tokenId);
+  //   assert.isNotNull(tokenUri);
+  // });
 
-    const address = await deployer.getAddress();
+  // it("should get total number of tokens owned by an address", async function () {
+  //   const [deployer] = await ethers.getSigners();
 
-    const author_balance = await market.balanceOf(address);
+  //   const address = await deployer.getAddress();
 
-    assert.isNotNull(author_balance);
-  });
+  //   const author_balance = await market.balanceOf(address);
 
-  it("should get token exists", async function () {
-    const TokenExists = await market.getTokenExists(tokenId);
-    assert.isNotNull(TokenExists);
-  });
+  //   assert.isNotNull(author_balance);
+  // });
 
-  it("should change token price", async function () {
-    await market.changeTokenPrice(tokenId, parseEther("10"));
-  });
+  // it("should get token exists", async function () {
+  //   const TokenExists = await market.getTokenExists(tokenId);
+  //   assert.isNotNull(TokenExists);
+  // });
 
-  it("should buy token...", async function () {
-    const [deployer] = await ethers.getSigners();
+  // it("should change token price", async function () {
+  //   await market.changeTokenPrice(tokenId, parseEther("10"));
+  // });
 
-    const address = await deployer.getAddress();
+  // it("should buy token...", async function () {
+  //   const [deployer] = await ethers.getSigners();
 
-    const tx = await market.buyToken(tokenId, {
-      value: parseEther("10"),
-    });
+  //   const address = await deployer.getAddress();
 
-    const res = await tx.wait();
+  //   const tx = await market.buyToken(tokenId, {
+  //     value: parseEther("10"),
+  //   });
 
-    if (!res.events || res.events?.length === 0) {
-      assert.fail("No events emitted");
-    }
+  //   const res = await tx.wait();
 
-    const buyer = res.events[0].args?.buyer;
-    const seller = res.events[0].args?.seller;
-    const nftId = res.events[0].args?.nftId;
-    const price = res.events[0].args?.price;
+  //   if (!res.events || res.events?.length === 0) {
+  //     assert.fail("No events emitted");
+  //   }
 
-    assert.isNotNull(buyer);
-    assert.isNotNull(seller);
-    assert.isNotNull(nftId);
-    assert.isNotNull(price);
-  });
+  //   const buyer = res.events[0].args?.buyer;
+  //   const seller = res.events[0].args?.seller;
+  //   const nftId = res.events[0].args?.nftId;
+  //   const price = res.events[0].args?.price;
 
-  it("should burn token", async function () {
-    await market.burn(tokenId);
-  });
+  //   assert.isNotNull(buyer);
+  //   assert.isNotNull(seller);
+  //   assert.isNotNull(nftId);
+  //   assert.isNotNull(price);
+  // });
+
+  // it("should burn token", async function () {
+  //   await market.burn(tokenId);
+  // });
 });

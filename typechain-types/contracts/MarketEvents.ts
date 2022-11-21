@@ -22,14 +22,15 @@ export interface MarketEventsInterface extends utils.Interface {
     "NFTCreated(uint256,uint256,address,string,uint256)": EventFragment;
     "NFTDeleted(uint256,address)": EventFragment;
     "NFTPriceChanged(uint256,uint256,uint256,address)": EventFragment;
-    "NFTSold(uint256,uint256,address,address,uint256)": EventFragment;
+    "NFTSold(uint256,uint256,address,address,uint256,uint256)": EventFragment;
     "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)": EventFragment;
     "ServiceFeesPriceChanged(uint256,uint256)": EventFragment;
     "SetNftPlatformFee(uint256,address,uint256)": EventFragment;
     "SetNftPrice(uint256,address,uint256)": EventFragment;
     "TransferNftOwnership(uint256,address,address)": EventFragment;
     "TransferNftPriceToOwner(uint256,address,uint256)": EventFragment;
-    "TransferPlatformFees(uint256,uint256)": EventFragment;
+    "TransferPlatformFees(uint256,address,uint256)": EventFragment;
+    "TransferSellerFees(uint256,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "CollaboratorAdded"): EventFragment;
@@ -46,6 +47,7 @@ export interface MarketEventsInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TransferNftOwnership"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferNftPriceToOwner"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferPlatformFees"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferSellerFees"): EventFragment;
 }
 
 export interface CollaboratorAddedEventObject {
@@ -129,10 +131,11 @@ export interface NFTSoldEventObject {
   nftId: BigNumber;
   buyer: string;
   seller: string;
-  price: BigNumber;
+  sellerAmount: BigNumber;
+  feeAmount: BigNumber;
 }
 export type NFTSoldEvent = TypedEvent<
-  [BigNumber, BigNumber, string, string, BigNumber],
+  [BigNumber, BigNumber, string, string, BigNumber, BigNumber],
   NFTSoldEventObject
 >;
 
@@ -217,15 +220,29 @@ export type TransferNftPriceToOwnerEventFilter =
 
 export interface TransferPlatformFeesEventObject {
   nftId: BigNumber;
+  platform_owner: string;
   amount: BigNumber;
 }
 export type TransferPlatformFeesEvent = TypedEvent<
-  [BigNumber, BigNumber],
+  [BigNumber, string, BigNumber],
   TransferPlatformFeesEventObject
 >;
 
 export type TransferPlatformFeesEventFilter =
   TypedEventFilter<TransferPlatformFeesEvent>;
+
+export interface TransferSellerFeesEventObject {
+  nftId: BigNumber;
+  seller: string;
+  amount: BigNumber;
+}
+export type TransferSellerFeesEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  TransferSellerFeesEventObject
+>;
+
+export type TransferSellerFeesEventFilter =
+  TypedEventFilter<TransferSellerFeesEvent>;
 
 export interface MarketEvents extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -323,19 +340,21 @@ export interface MarketEvents extends BaseContract {
       owner?: null
     ): NFTPriceChangedEventFilter;
 
-    "NFTSold(uint256,uint256,address,address,uint256)"(
+    "NFTSold(uint256,uint256,address,address,uint256,uint256)"(
       collectionId?: null,
       nftId?: null,
       buyer?: null,
       seller?: null,
-      price?: null
+      sellerAmount?: null,
+      feeAmount?: null
     ): NFTSoldEventFilter;
     NFTSold(
       collectionId?: null,
       nftId?: null,
       buyer?: null,
       seller?: null,
-      price?: null
+      sellerAmount?: null,
+      feeAmount?: null
     ): NFTSoldEventFilter;
 
     "NFT_Toggleed_Sale_Status(uint256,uint256,address,bool)"(
@@ -404,14 +423,27 @@ export interface MarketEvents extends BaseContract {
       price?: null
     ): TransferNftPriceToOwnerEventFilter;
 
-    "TransferPlatformFees(uint256,uint256)"(
+    "TransferPlatformFees(uint256,address,uint256)"(
       nftId?: null,
+      platform_owner?: null,
       amount?: null
     ): TransferPlatformFeesEventFilter;
     TransferPlatformFees(
       nftId?: null,
+      platform_owner?: null,
       amount?: null
     ): TransferPlatformFeesEventFilter;
+
+    "TransferSellerFees(uint256,address,uint256)"(
+      nftId?: null,
+      seller?: null,
+      amount?: null
+    ): TransferSellerFeesEventFilter;
+    TransferSellerFees(
+      nftId?: null,
+      seller?: null,
+      amount?: null
+    ): TransferSellerFeesEventFilter;
   };
 
   estimateGas: {};

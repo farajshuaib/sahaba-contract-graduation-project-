@@ -196,7 +196,13 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "price",
+        name: "sellerAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "feeAmount",
         type: "uint256",
       },
     ],
@@ -364,6 +370,12 @@ const _abi = [
       },
       {
         indexed: false,
+        internalType: "address",
+        name: "platform_owner",
+        type: "address",
+      },
+      {
+        indexed: false,
         internalType: "uint256",
         name: "amount",
         type: "uint256",
@@ -372,10 +384,35 @@ const _abi = [
     name: "TransferPlatformFees",
     type: "event",
   },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "nftId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "seller",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "TransferSellerFees",
+    type: "event",
+  },
 ];
 
 const _bytecode =
-  "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220d142ce98181c8876065e9bba361c4eb8bdb5b734edc5cfa221e7224e718a854364736f6c63430008090033";
+  "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212200aa9374fd18e41a5f331015de92e655ca50150b8b321d823be32f8ffb6eb1c6e64736f6c63430008090033";
 
 type MarketEventsConstructorParams =
   | [signer?: Signer]

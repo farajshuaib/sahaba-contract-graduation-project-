@@ -7,10 +7,9 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract SahabaMarketplace is
     ERC721URIStorage,
@@ -18,10 +17,9 @@ contract SahabaMarketplace is
     MarketEvents,
     ReentrancyGuard
 {
-    using SafeERC20 for IERC20;
+    using Counters for Counters.Counter;
     using SafeMath for uint256;
     using Address for address payable;
-    using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIds;
     Counters.Counter private _collectionIds;
@@ -31,7 +29,7 @@ contract SahabaMarketplace is
     // this contract's token symbol
     string public collectionNameSymbol;
     //people have to pay to puy their NFT on this marketplace
-    uint256 private _service_fees = 0.025 ether; // since 1 Ether is 10**18 Wei. 0.025 Ether is 0.025 * 10**18 Wei
+    uint256 private _service_fees =  25000000000000000; // 0.025 ether; // since 1 Ether is 10**18 Wei. 0.025 Ether is 0.025 * 10**18 Wei
 
     constructor() ERC721("Sahaba_NFT_Marketplace", "SAHABA") {
         collectionName = name();
@@ -44,7 +42,6 @@ contract SahabaMarketplace is
         address currentOwner;
         address previousOwner;
         uint256 price;
-        uint256 platformFees;
         uint256 collectionId;
         uint256 numberOfTransfers;
         bool isForSale;
@@ -146,37 +143,11 @@ contract SahabaMarketplace is
         _;
     }
 
-    function calcItemPrice(
-        uint256 tokenId,
-        uint256 price,
-        uint256 platformFees
-    ) private itemOwnerSchema(tokenId) returns (uint256) {
-        require(price > 0, "Price must be above zero");
-        // calc the platform fees
-        uint256 _price = (price - platformFees) / 1 ether;
-        emit SetNftPrice(tokenId, msg.sender, _price);
-        return _price;
-    }
-
-    function calcItemPlatformFee(uint256 tokenId, uint256 price)
-        private
-        itemOwnerSchema(tokenId)
-        returns (uint256)
-    {
-        require(price > 0, "Price must be above zero");
-        uint256 platformFees = 0;
-        if (_service_fees > 0) {
-            platformFees = (price * _service_fees) / 1 ether;
-            emit SetNftPlatformFee(tokenId, msg.sender, platformFees);
-        }
-        return platformFees;
-    }
-
     // create collection
     function createCollection(
         string memory _name,
         address[] memory _collaborator
-    ) public returns (uint256) {
+    ) public nonReentrant returns (uint256) {
         require(
             !collectionNameExists[_name],
             "Collection name already exists, please choose another name"
@@ -205,6 +176,7 @@ contract SahabaMarketplace is
     // adding collaborators to a collection
     function addCollaborators(uint256 _collectionId, address _collaborator)
         public
+        nonReentrant
         shoubBeCollaborator(_collectionId)
     {
         Collections storage collection = idCollection[_collectionId];
@@ -219,6 +191,7 @@ contract SahabaMarketplace is
     // remove collaborators from a collection
     function removeCollaborators(uint256 _collectionId, address _collaborator)
         public
+        nonReentrant
     {
         Collections storage collection = idCollection[_collectionId];
         require(
@@ -241,6 +214,26 @@ contract SahabaMarketplace is
         emit CollaboratorRemoved(_collectionId, _collaborator);
     }
 
+    function calcItemPrice(uint256 price, uint256 feeAmount)
+        public
+        pure
+        returns (uint256)
+    {
+        require(price > 0, "Price must be above zero");
+        uint256 _price = price.sub(feeAmount);
+        return _price;
+    }
+
+    function calcItemPlatformFee(uint256 price)
+        public
+        view
+        returns (uint256)
+    {
+        require(price > 0, "Price must be above zero");
+        uint256 feeAmount = price.mul(_service_fees).div(1e18);
+        return feeAmount;
+    }
+
     /// @notice function to create market item
     function createAndListToken(
         string memory tokenURI,
@@ -249,6 +242,7 @@ contract SahabaMarketplace is
     )
         public
         payable
+        nonReentrant
         createAndListTokenSchema(price, tokenURI)
         shoubBeCollaborator(_collectionId)
         returns (uint256)
@@ -259,20 +253,16 @@ contract SahabaMarketplace is
 
         _mint(msg.sender, newItemId); // mint the token
         _setTokenURI(newItemId, tokenURI); //generate the URI
-        setApprovalForAll(address(this), true); //grant transaction permission to marketplace
-        uint256 platformFees = calcItemPlatformFee(newItemId, price);
-        uint256 _price = calcItemPrice(newItemId, price, platformFees);
 
         MarketItem memory newItem = MarketItem(
-            newItemId,
-            payable(msg.sender),
-            payable(msg.sender),
-            payable(address(0)),
-            _price,
-            platformFees,
-            _collectionId,
+            newItemId, // tokenId
+            payable(msg.sender), // created by
+            payable(msg.sender), // current owner
+            payable(address(0)), // prev owner
+            price, // price
+            _collectionId, // collection id
             0, // number of transfer
-            false
+            false // is fo sale
         );
 
         idMarketItem[newItemId] = newItem;
@@ -282,7 +272,11 @@ contract SahabaMarketplace is
     }
 
     // switch between set for sale and set not for sale
-    function toggleForSale(uint256 _tokenId) public itemOwnerSchema(_tokenId) {
+    function toggleForSale(uint256 _tokenId)
+        public
+        nonReentrant
+        itemOwnerSchema(_tokenId)
+    {
         address tokenOwner = ownerOf(_tokenId);
         // get that token from idMarketItem mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[_tokenId];
@@ -303,63 +297,25 @@ contract SahabaMarketplace is
         );
     }
 
-    function buyToken(uint256 tokenId) public payable buyTokenSchema(tokenId) {
-        _buyToken(tokenId, address(0));
-    }
-
-    // buy token
-    function buyTokenWithERC20(uint256 tokenId, address _payToken)
+    function buyToken(uint256 tokenId)
         public
         payable
+        nonReentrant
         buyTokenSchema(tokenId)
     {
-        _buyToken(tokenId, _payToken);
-    }
-
-    function _buyToken(uint256 tokenId, address _payToken) private {
         address tokenOwner = ownerOf(tokenId);
         // get that token from all market items mapping and create a memory of it defined as (struct => MarketItem)
         MarketItem memory marketItem = idMarketItem[tokenId];
 
-        // send token's worth of ethers to the owner
-        if (_payToken == address(0)) {
-            // marketItem.currentOwner.transfer(marketItem.price);
-            (bool ownerTransferSuccess, ) = marketItem.currentOwner.call{
-                value: marketItem.price
-            }("");
-            require(ownerTransferSuccess, "NFT owner transfer failed");
-            //pay owner of contract the service fees
-            if (marketItem.platformFees > 0) {
-                // send the platform fees to the platform
-                (bool platformTransferSuccess, ) = owner().call{
-                    value: marketItem.platformFees
-                }("");
-                require(platformTransferSuccess, "platform fee transfer failed");
-                emit TransferPlatformFees(tokenId, marketItem.platformFees);
-            }
-        } else {
-            IERC20(_payToken).safeTransferFrom(
-                msg.sender,
-                marketItem.currentOwner,
-                marketItem.price
-            );
-            //pay owner of contract the service fees
-            if (marketItem.platformFees > 0) {
-                // send the platform fees to the platform in other currency
-                IERC20(_payToken).safeTransferFrom(
-                    msg.sender,
-                    owner(),
-                    marketItem.platformFees
-                );
-                emit TransferPlatformFees(tokenId, marketItem.platformFees);
-            }
-        }
+        uint256 platformFees = calcItemPlatformFee(marketItem.price);
+        uint256 sellerAmmount = calcItemPrice(marketItem.price, platformFees);
 
-        emit TransferNftPriceToOwner(
-            tokenId,
-            marketItem.currentOwner,
-            marketItem.price
-        );
+        // send token's worth of ethers to the owner
+        payable(tokenOwner).transfer(sellerAmmount); // send the ETH to the seller
+        emit TransferSellerFees(tokenId, tokenOwner, sellerAmmount);
+        // send the platform fees to the platform
+        payable(owner()).transfer(platformFees);
+        emit TransferPlatformFees(tokenId, owner(), platformFees);
 
         // transfer the token from owner to the caller of the function (buyer)
         _transfer(tokenOwner, msg.sender, tokenId); // _transfer(from, to, token_id)
@@ -378,40 +334,32 @@ contract SahabaMarketplace is
             tokenId,
             msg.sender,
             tokenOwner,
-            marketItem.price
+            marketItem.price,
+            platformFees
         );
     }
 
-    function changeTokenPrice(uint256 tokenId, uint256 _newPrice)
+    function changeTokenPrice(uint256 tokenId, uint256 _price)
         public
+        nonReentrant
         itemOwnerSchema(tokenId)
     {
         MarketItem memory marketItem = idMarketItem[tokenId];
 
-        uint256 platformFees = calcItemPlatformFee(
-            marketItem.tokenId,
-            _newPrice
-        );
-        uint256 _price = calcItemPrice(
-            marketItem.tokenId,
-            _newPrice,
-            platformFees
-        );
-
-        emit NFTPriceChanged(tokenId, marketItem.price, _price, msg.sender);
         // update token's price with new price
-        marketItem.platformFees = platformFees;
         marketItem.price = _price;
 
         // set and update that token in the mapping
         idMarketItem[tokenId] = marketItem;
+
+        emit NFTPriceChanged(tokenId, marketItem.price, _price, msg.sender);
     }
 
     function getServiceFeesPrice() public view returns (uint256) {
         return _service_fees;
     }
 
-    function setServiceFeesPrice(uint256 price) public onlyOwner {
+    function setServiceFeesPrice(uint256 price) public nonReentrant onlyOwner {
         emit ServiceFeesPriceChanged(_service_fees, price);
         _service_fees = price;
     }
@@ -446,7 +394,44 @@ contract SahabaMarketplace is
         return idCollection[_collectionId].collaborators;
     }
 
-    function burn(uint256 tokenId) public itemOwnerSchema(tokenId) {
+    /* Returns only items that a user has purchased */
+    function fetchMyNFTs() public view returns (MarketItem[] memory) {
+        uint totalItemCount = _tokenIds.current();
+        uint itemCount = 0;
+        uint currentIndex = 0;
+
+        for (uint i = 0; i < totalItemCount; i++) {
+            if (idMarketItem[i + 1].currentOwner == msg.sender) {
+                itemCount += 1;
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+        for (uint i = 0; i < totalItemCount; i++) {
+            if (idMarketItem[i + 1].currentOwner == msg.sender) {
+                uint currentId = i + 1;
+                MarketItem storage currentItem = idMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+        return items;
+    }
+
+    function getTotalNumberOfTokensOwnedByAnAddress(address _owner)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 totalNumberOfTokensOwned = balanceOf(_owner);
+        return totalNumberOfTokensOwned;
+    }
+
+    function burn(uint256 tokenId)
+        public
+        nonReentrant
+        itemOwnerSchema(tokenId)
+    {
         _burn(tokenId);
 
         emit NFTDeleted(tokenId, msg.sender);
