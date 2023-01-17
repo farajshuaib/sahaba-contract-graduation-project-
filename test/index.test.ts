@@ -5,7 +5,7 @@ import { ethers } from "hardhat";
 import { SahabaMarketplace } from "../typechain-types";
 import { step } from "mocha-steps";
 
-describe("sahaba NFT Marketplace contract functions", async function () {
+describe("Sahaba NFT Marketplace smart contract interface", async function () {
   // general variable ...
   let market: SahabaMarketplace, tokenId: string, collection_id: string;
 
@@ -20,33 +20,28 @@ describe("sahaba NFT Marketplace contract functions", async function () {
   step("should calc platform fee and NFT seller amount", async () => {
     const calcItemPlatformFee = await market.calcItemPlatformFee(Price);
     const fee = BigNumber.from(calcItemPlatformFee).toString();
-    console.log("get thr platform fee =>", fee);
     const calcItemPrice = await market.calcItemPrice(Price, fee);
     const sellerAmount = BigNumber.from(calcItemPrice).toString();
-    console.log("nft seller gets =>", sellerAmount);
+    assert.isNotNull(sellerAmount);
   });
 
   step("should get market address", () => {
     const marketAddress = market.address;
-    console.log("Market Address => ", marketAddress);
     assert.isNotNull(marketAddress);
   });
 
   step("should get market ERC721 collection name", () => {
     const collectionName = market.collectionName();
-    console.log("Collection Name => ", collectionName);
     assert.isNotNull(collectionName);
   });
 
   step("should get market ERC721 collection symbol", () => {
     const collectionNameSymbol = market.collectionNameSymbol();
-    console.log("Collection Name Symbol => ", collectionNameSymbol);
     assert.isNotNull(collectionNameSymbol);
   });
 
   step("should get Service Fees", async function () {
     const serviceFeesPrice = (await market.getServiceFeesPrice()).toString();
-    console.log("Service Fees Price => ", serviceFeesPrice);
     assert.isNotNull(serviceFeesPrice);
   });
 
@@ -69,8 +64,6 @@ describe("sahaba NFT Marketplace contract functions", async function () {
 
     collection_id = BigNumber.from(res.events[0].args?.collectionId).toString();
 
-    console.log("collection_id => ", collection_id);
-
     assert.isNotNull(collection_id);
   });
 
@@ -91,10 +84,6 @@ describe("sahaba NFT Marketplace contract functions", async function () {
   });
 
   step("should create nft and list it", async function () {
-    const [deployer] = await ethers.getSigners();
-    const [owner, addr1] = await ethers.getSigners();
-    const deployerAddress = await deployer.getAddress();
-
     const tx = await market.createAndListToken(
       "https://laravel.com/img/logomark.min.svg",
       Price,
@@ -108,8 +97,6 @@ describe("sahaba NFT Marketplace contract functions", async function () {
     }
 
     tokenId = BigNumber.from(res.events[0].args?.tokenId).toString();
-
-    console.log(tokenId);
 
     assert.isNotNull(tokenId);
   });
@@ -187,23 +174,15 @@ describe("sahaba NFT Marketplace contract functions", async function () {
       assert.fail("No events emitted");
     }
 
-    const buyer = res.events[4].args?.buyer;
-    const seller = res.events[4].args?.seller;
-    const nftId = BigNumber.from(res.events[0].args?.nftId).toString();
-    const amount = BigNumber.from(res.events[0].args?.amount).toString();
-    const sellerAmount = BigNumber.from(
-      res.events[4].args?.sellerAmount
-    ).toString();
-    const feeAmount = BigNumber.from(res.events[4].args?.feeAmount).toString();
-    const platform_owner = res.events[1].args?.platform_owner;
-
-    assert.isNotNull(buyer);
-    assert.isNotNull(seller);
-    assert.isNotNull(nftId);
-    assert.isNotNull(amount);
-    assert.isNotNull(platform_owner);
-    assert.isNotNull(sellerAmount);
-    assert.isNotNull(feeAmount);
+    assert.isNotNull(res.events[4].args?.buyer);
+    assert.isNotNull(res.events[4].args?.seller);
+    assert.isNotNull(BigNumber.from(res.events[0].args?.nftId).toString());
+    assert.isNotNull(BigNumber.from(res.events[0].args?.amount).toString());
+    assert.isNotNull(
+      BigNumber.from(res.events[4].args?.sellerAmount).toString()
+    );
+    assert.isNotNull(BigNumber.from(res.events[4].args?.feeAmount).toString());
+    assert.isNotNull(res.events[1].args?.platform_owner);
   });
 
   step("should get total number of tokens owned by address", async function () {
